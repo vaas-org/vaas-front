@@ -1,0 +1,9 @@
+# Program stuff
+elm-stuff
+node_modules
+
+# OS stuff
+.DS_Store
+
+# Editor stuff
+.vscode

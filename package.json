@@ -5,5 +5,8 @@
   },
   "dependencies": {
     "parcel": "^1.12.4"
+  },
+  "scripts": {
+    "start": "parcel serve index.html"
   }
 }

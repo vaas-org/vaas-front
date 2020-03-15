@@ -2,6 +2,7 @@ module Main exposing (main)
 
 import Browser
 import Html exposing (Html, h1, text)
+import Task
 
 
 main : Program Flags Model Msg
@@ -41,6 +42,16 @@ update msg model =
     case msg of
         NoOp ->
             ( model, Cmd.none )
+
+
+
+-- util function which accepts a Msg as argument and converts it to a Cmd Msg.
+-- This is used when a Msg should trigger another Msg in update
+
+
+send : Msg -> Cmd Msg
+send msg =
+    Task.succeed msg |> Task.perform identity
 
 
 subscriptions : Model -> Sub Msg

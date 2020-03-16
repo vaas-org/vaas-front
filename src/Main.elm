@@ -1,9 +1,12 @@
-module Main exposing (main)
+port module Main exposing (main)
 
 import Browser
-import Html exposing (Html, div, form, h1, h2, h3, header, input, label, p, progress, span, text)
+import Decoder exposing (decodeReceivedIssue)
+import Html exposing (Html, div, form, h1, h2, h3, header, input, label, li, p, progress, span, text, ul)
 import Html.Attributes exposing (max, name, style, type_, value)
-import Model exposing (Alternative, Issue, IssueState(..))
+import Json.Decode as D
+import Json.Encode as E
+import Model exposing (Alternative, Issue, IssueState(..), Vote)
 import Task
 
 
@@ -24,6 +27,7 @@ type alias Model =
 
 type Msg
     = NoOp
+    | ReceiveIssue E.Value
 
 
 type alias Flags =
@@ -46,12 +50,13 @@ alternativeTwo =
 
 dummyIssue : Issue
 dummyIssue =
-    { id = "1"
-    , title = "An Issue"
-    , description = "long issue description"
+    { id = ""
+    , title = ""
+    , description = ""
     , state = NotStarted
     , votes = []
-    , alternatives = [ alternativeOne, alternativeTwo ]
+    , alternatives = []
+    , maxVoters = 0
     }
 
 
@@ -105,7 +110,11 @@ body model =
         [ style "grid-column" "2"
         , style "margin-top" "3rem"
         ]
-        [ issueContainer model
+        [ if model.activeIssue.id /= "" then
+            issueContainer model
+
+          else
+            div [] [ text "no active issue" ]
         ]
 
 
@@ -117,23 +126,34 @@ issueContainer model =
         , style "flex-wrap" "wrap"
         ]
         [ issueView model.activeIssue
-
-        -- Hard coded to 10 users for testing purposes
-        , issueProgress 10 model.activeIssue
+        , issueProgress model.activeIssue.maxVoters model.activeIssue
+        , voteListContainer model.activeIssue.votes
         ]
 
 
 issueView : Issue -> Html Msg
 issueView issue =
+    let
+        issueState =
+            case issue.state of
+                NotStarted ->
+                    "Not Started"
+
+                InProgress ->
+                    "In Progress"
+
+                Finished ->
+                    "Finished"
+    in
     div
         [ style "border" "1px solid #ddd"
         , style "border-radius" "4px"
         , style "margin-bottom" "1rem"
         , style "padding" "0 1rem 1rem"
-        , style "flex" "1 1 30rem"
+        , style "flex" "1 1 35rem"
         ]
         [ div []
-            [ h2 [] [ text issue.title ]
+            [ h2 [] [ text (issue.title ++ "(" ++ issueState ++ ")") ]
             , p [] [ text issue.description ]
             ]
         , form [] (List.map (\a -> alternative a) issue.alternatives)
@@ -155,7 +175,7 @@ alternative alt =
 issueProgress : Int -> Issue -> Html msg
 issueProgress voters issue =
     div
-        [ style "flex" "1 1 8rem"
+        [ style "flex" "1 1 12rem"
         , style "border" "1px solid #ddd"
         , style "border-radius" "4px"
         , style "margin-bottom" "1rem"
@@ -163,9 +183,7 @@ issueProgress voters issue =
         ]
         [ div []
             [ h3 [] [ text "Status" ]
-
-            -- Add 2 votes for testing purposes
-            , progressBar (Basics.toFloat (List.length issue.votes) + 2) (Basics.toFloat voters)
+            , progressBar (Basics.toFloat (List.length issue.votes)) (Basics.toFloat voters)
             ]
         ]
 
@@ -191,6 +209,37 @@ progressBar current maxValue =
         ]
 
 
+voteListContainer : List Vote -> Html msg
+voteListContainer votes =
+    div
+        [ style "flex" "0 1 12rem"
+        , style "border" "1px solid #ddd"
+        , style "border-radius" "4px"
+        , style "margin-bottom" "1rem"
+        , style "padding" "0 1rem 1rem"
+        , style "justify-self" "flex-end"
+        ]
+        [ h3 [] [ text "Votes" ]
+        , voteList votes
+        ]
+
+
+voteList : List Vote -> Html msg
+voteList votes =
+    ul []
+        (List.map
+            (\v ->
+                case v of
+                    Model.AnonVote a ->
+                        li [] [ text ("(" ++ a.id ++ ") Voted") ]
+
+                    Model.PublicVote p ->
+                        li [] [ text ("(" ++ p.id ++ ") Voted for " ++ p.alternativeId) ]
+            )
+            votes
+        )
+
+
 
 -- Update & other model state management
 
@@ -200,6 +249,25 @@ update msg model =
     case msg of
         NoOp ->
             ( model, Cmd.none )
+
+        ReceiveIssue i ->
+            let
+                issue =
+                    case D.decodeValue decodeReceivedIssue i of
+                        Ok okIssue ->
+                            okIssue
+
+                        Err e ->
+                            { id = "0"
+                            , title = "Error decoding issue"
+                            , description = D.errorToString e
+                            , state = NotStarted
+                            , alternatives = []
+                            , votes = []
+                            , maxVoters = 0
+                            }
+            in
+            ( { model | activeIssue = issue }, Cmd.none )
 
 
 
@@ -214,4 +282,12 @@ send msg =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Sub.none
+    Sub.batch
+        [ receiveIssue ReceiveIssue
+        ]
+
+
+port sendVote : E.Value -> Cmd msg
+
+
+port receiveIssue : (E.Value -> msg) -> Sub msg

@@ -1,4 +1,4 @@
-module Model exposing (Alternative, Issue, IssueState(..), Meeting, User, Vote(..))
+module Model exposing (Alternative, Issue, IssueState(..), Meeting, UUID, User, Vote(..))
 
 
 type alias UUID =
@@ -6,12 +6,12 @@ type alias UUID =
 
 
 type Vote
-    = PublicVote
-        { id : UUID
+    = AnonVote
+        { id : String
         }
-    | AnonVote
-        { id : UUID
-        , alternativeId : UUID
+    | PublicVote
+        { id : String
+        , alternativeId : String
         }
 
 
@@ -40,6 +40,7 @@ type alias Issue =
     , state : IssueState
     , alternatives : List Alternative
     , votes : List Vote
+    , maxVoters : Int
     }
 
 

@@ -15,7 +15,10 @@ interface Alternative {
     title: string;
 }
 
-interface Vote {
+interface AnonVote {
+    id: string;
+}
+interface PublicVote {
     id: string;
     alternativeId: string;
 }
@@ -26,7 +29,7 @@ interface Issue {
     description: string;
     state: "notstarted" | "inprogress" | "finished";
     alternatives: Alternative[];
-    votes: Vote[];
+    votes: (AnonVote | PublicVote)[];
     maxVoters: number;
 };
 
@@ -49,6 +52,8 @@ setInterval(() => {
             { id: "1", alternativeId: "1" },
             { id: "2", alternativeId: "1" },
             { id: "3", alternativeId: "2" },
+            // Not really the case that we have an anon vote mixed with public but hey
+            { id: "4" },
         ],
         maxVoters: 10,
     };

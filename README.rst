@@ -3,6 +3,6 @@ VAAS-FRONT
 
 The frontend for VaaS.
 
-Run it with ``elm reactor``, visit the URL and find the src/Main.elm file.
+Run it with ``yarn start`` and visit the URL shown in your console.
 
 Read more here: https://github.com/elm/compiler/blob/master/hints/init.md

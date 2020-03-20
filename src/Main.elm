@@ -163,12 +163,25 @@ issueView issue =
 alternative : Alternative -> Html Msg
 alternative alt =
     div
-        [ style "border" "1px solid #eee"
-        , style "border-radius" "4px"
-        , style "padding" "2px"
+        [ style "margin" "0.5rem 0"
+        , style "border-radius" "6px"
+        , style "background-color" "rgb(50, 130, 215)"
         ]
-        [ label [] [ text alt.title ]
-        , input [ type_ "radio", name "alternative" ] []
+        [ label
+            [ Html.Attributes.for alt.title
+            , style "padding" "0.75rem"
+            , style "display" "block"
+            , style "width" "100%"
+            , style "color" "#fefefe"
+            ]
+            [ text alt.title ]
+        , input
+            [ type_ "radio"
+            , name "alternative"
+            , Html.Attributes.id alt.title
+            , style "display" "none"
+            ]
+            []
         ]
 
 

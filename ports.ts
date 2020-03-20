@@ -1,4 +1,5 @@
 import { Elm } from "./src/Main.elm";
+import { connect, disconnect, send } from "./websocket";
 
 const app = Elm.Main.init({
     node: document.getElementById("app"),
@@ -23,7 +24,7 @@ app.ports.sendWebsocketConnect.subscribe(() => {
 app.ports.sendWebsocketDisconnect.subscribe(() => {
     console.info("WS disconnect request")
     app.ports.receiveWebsocketStatus.send("disconnecting");
-    // how to disconnect? /?/ //
+    disconnect();
     app.ports.receiveWebsocketStatus.send("disconnected");
 });
 
@@ -60,29 +61,13 @@ function sendVoteToElm(vote: PublicVote | AnonVote) {
 }
 
 function connectToWebsocket() {
-    const i = {
-        id: "0fc3a2d",
-        title: "Some title",
-        description: "Fancy, long description with a lot of information but maybe not too much.",
-        // wtf typescript are you drunk
-        state: "notstarted" as "notstarted" | "inprogress" | "finished",
-        alternatives: [
-            { id: "1", title: "Alternative One" },
-            { id: "2", title: "Alternative Two" },
-            { id: "3", title: "Alternative Three" },
-        ],
-        votes: [
-            // { id: "1", alternativeId: "1" },
-            // { id: "2", alternativeId: "1" },
-            // { id: "3", alternativeId: "2" },
-            // // Not really the case that we have an anon vote mixed with public but hey
-            // { id: "4" },
-        ],
-        maxVoters: 10,
-        showDistribution: true,
-    };
-    console.log("Sending issue");
-    sendIssueToElm(i);
+    connect((data: { data: string }) => {
+        console.log("recvd", data)
+
+        // Try to parse the data as JSON
+        const message = JSON.parse(data.data)
+        sendIssueToElm(message);
+    })
 }
 
 let sendVoteCounter = 0;

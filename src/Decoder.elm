@@ -54,5 +54,5 @@ decodeReceivedIssue =
         (D.field "state" D.string |> D.andThen decodeIssueState)
         (D.field "alternatives" (D.list decodeAlternative))
         (D.field "votes" (D.list decodeVote))
-        (D.field "maxVoters" D.int)
-        (D.field "showDistribution" D.bool)
+        (D.field "max_voters" D.int)
+        (D.field "show_distribution" D.bool)

@@ -28,10 +28,20 @@ type EventStatus
     | Failed String
 
 
+type ConnectionStatus
+    = NotConnectedYet
+    | Connecting
+    | Connected
+    | Disconnecting
+    | Disconnected
+    | Errored String
+
+
 type alias Model =
     { activeIssue : Issue
     , selectedAlternative : Maybe Alternative
     , sendVoteStatus : EventStatus
+    , websocketConnection : ConnectionStatus
     }
 
 
@@ -42,6 +52,9 @@ type Msg
     | SendVote Alternative
     | SetVoteStatus EventStatus
     | ReceiveVote E.Value -- Consider if we should expect issueId here too?
+    | SendWebsocketConnect
+    | SendWebsocketDisconnect
+    | ReceiveWebsocketConnectionState E.Value
 
 
 type alias Flags =
@@ -66,8 +79,9 @@ init _ =
     ( { activeIssue = dummyIssue
       , selectedAlternative = Nothing
       , sendVoteStatus = NotSent
+      , websocketConnection = NotConnectedYet
       }
-    , Cmd.none
+    , send SendWebsocketConnect
     )
 
 
@@ -84,19 +98,41 @@ view model =
         -- @ToDo: if wide screen add some more padding
         , style "grid-template-columns" "1fr 80% 1fr"
         ]
-        [ banner
+        [ banner model.websocketConnection
         , body model
         , footer
         ]
 
 
-banner : Html msg
-banner =
+connectionStatusStr : ConnectionStatus -> String
+connectionStatusStr status =
+    case status of
+        NotConnectedYet ->
+            "Not yet connected"
+
+        Connected ->
+            "Connected"
+
+        Connecting ->
+            "Connecting"
+
+        Disconnecting ->
+            "Disconnecting"
+
+        Disconnected ->
+            "Disconnected"
+
+        Errored e ->
+            "Connection error: " ++ e
+
+
+banner : ConnectionStatus -> Html msg
+banner stat =
     header
         [ style "grid-column" "span 3"
         , style "margin" "0 1.5rem"
         ]
-        [ h1 [] [ text "VaaS" ]
+        [ h1 [] [ text ("VaaS" ++ " - " ++ connectionStatusStr stat) ]
         ]
 
 
@@ -352,6 +388,15 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
+        SendWebsocketConnect ->
+            ( model, sendWebsocketConnect () )
+
+        SendWebsocketDisconnect ->
+            ( model, sendWebsocketDisconnect () )
+
+        ReceiveWebsocketConnectionState state ->
+            ( { model | websocketConnection = decodeWebsocketConnectionState state }, Cmd.none )
+
         ReceiveIssue i ->
             let
                 issue =
@@ -438,10 +483,52 @@ subscriptions _ =
     Sub.batch
         [ receiveIssue ReceiveIssue
         , receiveVote ReceiveVote
+        , receiveWebsocketStatus ReceiveWebsocketConnectionState
         ]
 
 
 port sendVote : E.Value -> Cmd msg
+
+
+port sendWebsocketConnect : () -> Cmd msg
+
+
+port sendWebsocketDisconnect : () -> Cmd msg
+
+
+port receiveWebsocketStatus : (E.Value -> msg) -> Sub msg
+
+
+ax : D.Decoder String
+ax =
+    D.string
+
+
+decodeWebsocketConnectionState : E.Value -> ConnectionStatus
+decodeWebsocketConnectionState state =
+    case D.decodeValue ax state of
+        Ok s ->
+            case s of
+                "connected" ->
+                    Connected
+
+                "connecting" ->
+                    Connecting
+
+                "disconnecting" ->
+                    Disconnecting
+
+                "disconnected" ->
+                    Disconnected
+
+                "notyetconnected" ->
+                    NotConnectedYet
+
+                a ->
+                    Errored ("invalid connection state: " ++ a)
+
+        Err e ->
+            Errored ("failed to decode as string: " ++ D.errorToString e)
 
 
 port receiveIssue : (E.Value -> msg) -> Sub msg

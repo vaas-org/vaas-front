@@ -10,6 +10,23 @@ app.ports.sendVote.subscribe((vote: PublicVote | AnonVote) => {
     sendVoteToElm({ ...vote, id: "whoami" })
 });
 
+app.ports.sendWebsocketConnect.subscribe(() => {
+    console.info("WS connect request")
+    app.ports.receiveWebsocketStatus.send("connecting");
+    setTimeout(() => {
+        console.log("simulating some connection delay")
+        connectToWebsocket();
+        app.ports.receiveWebsocketStatus.send("connected");
+    }, 1000);
+});
+
+app.ports.sendWebsocketDisconnect.subscribe(() => {
+    console.info("WS disconnect request")
+    app.ports.receiveWebsocketStatus.send("disconnecting");
+    // how to disconnect? /?/ //
+    app.ports.receiveWebsocketStatus.send("disconnected");
+});
+
 interface Alternative {
     id: string;
     title: string;
@@ -42,7 +59,7 @@ function sendVoteToElm(vote: PublicVote | AnonVote) {
     app.ports.receiveVote.send(vote);
 }
 
-setTimeout(() => {
+function connectToWebsocket() {
     const i = {
         id: "0fc3a2d",
         title: "Some title",
@@ -55,13 +72,18 @@ setTimeout(() => {
             { id: "3", title: "Alternative Three" },
         ],
         votes: [
+            // { id: "1", alternativeId: "1" },
+            // { id: "2", alternativeId: "1" },
+            // { id: "3", alternativeId: "2" },
+            // // Not really the case that we have an anon vote mixed with public but hey
+            // { id: "4" },
         ],
         maxVoters: 10,
         showDistribution: true,
     };
     console.log("Sending issue");
     sendIssueToElm(i);
-}, 500)
+}
 
 let sendVoteCounter = 0;
 const sendVoteInterval = setInterval(() => {

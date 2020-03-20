@@ -1,4 +1,4 @@
-module Decoder exposing (decodeAlternative, decodeReceivedIssue)
+module Decoder exposing (decodeAlternative, decodeReceivedIssue, decodeVote)
 
 import Json.Decode as D
 import Model exposing (Alternative, Issue, IssueState(..), Vote(..))

@@ -34,7 +34,11 @@ function sendIssueToElm(issue: Issue) {
     app.ports.receiveIssue.send(issue);
 }
 
-setInterval(() => {
+function sendVoteToElm(vote: PublicVote | AnonVote) {
+    app.ports.receiveVote.send(vote);
+}
+
+setTimeout(() => {
     const i = {
         id: "0fc3a2d",
         title: "Some title",

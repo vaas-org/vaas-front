@@ -1,7 +1,7 @@
 port module Main exposing (main)
 
 import Browser
-import Decoder exposing (decodeReceivedIssue)
+import Decoder exposing (decodeReceivedIssue, decodeVote)
 import Html exposing (Html, div, form, h1, h2, h3, header, input, label, li, p, progress, span, text, ul)
 import Html.Attributes exposing (max, name, style, type_, value)
 import Html.Events exposing (onClick)
@@ -41,6 +41,7 @@ type Msg
     | SelectAlternative Alternative
     | SendVote Alternative
     | SetVoteStatus EventStatus
+    | ReceiveVote E.Value -- Consider if we should expect issueId here too?
 
 
 type alias Flags =
@@ -366,6 +367,25 @@ update msg model =
             in
             ( { model | sendVoteStatus = Sent }, Cmd.batch [ sendVote decodedAlt, send (SetVoteStatus Success) ] )
 
+        ReceiveVote v ->
+            let
+                modelIssue =
+                    model.activeIssue
+
+                -- updatedIssue =
+                --     if issue.id == model.activeIssue.id then
+                --     else
+                --         model.activeIssue
+                updatedIssue =
+                    case D.decodeValue decodeVote v of
+                        Ok okVote ->
+                            { modelIssue | votes = okVote :: modelIssue.votes }
+
+                        Err _ ->
+                            modelIssue
+            in
+            ( { model | activeIssue = updatedIssue }, Cmd.none )
+
 
 
 -- util function which accepts a Msg as argument and converts it to a Cmd Msg.
@@ -381,6 +401,7 @@ subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
         [ receiveIssue ReceiveIssue
+        , receiveVote ReceiveVote
         ]
 
 
@@ -388,3 +409,6 @@ port sendVote : E.Value -> Cmd msg
 
 
 port receiveIssue : (E.Value -> msg) -> Sub msg
+
+
+port receiveVote : (E.Value -> msg) -> Sub msg

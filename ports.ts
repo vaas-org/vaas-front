@@ -5,10 +5,7 @@ const app = Elm.Main.init({
     flags: {},
 });
 
-if (app && app.ports && app.ports.sendvote)
-    app.ports.sendVote.subscribe(vote => console.log("sendvote: ", vote));
-else
-    console.log("error subbing")
+app.ports.sendVote.subscribe(vote => console.log("sendvote: ", vote));
 
 interface Alternative {
     id: string;

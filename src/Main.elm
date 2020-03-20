@@ -21,9 +21,17 @@ main =
         }
 
 
+type EventStatus
+    = NotSent
+    | Sent
+    | Success
+    | Failed String
+
+
 type alias Model =
     { activeIssue : Issue
     , selectedAlternative : Maybe Alternative
+    , sendVoteStatus : EventStatus
     }
 
 
@@ -31,6 +39,8 @@ type Msg
     = NoOp
     | ReceiveIssue E.Value
     | SelectAlternative Alternative
+    | SendVote Alternative
+    | SetVoteStatus EventStatus
 
 
 type alias Flags =
@@ -51,7 +61,12 @@ dummyIssue =
 
 init : Flags -> ( Model, Cmd Msg )
 init _ =
-    ( { activeIssue = dummyIssue, selectedAlternative = Nothing }, Cmd.none )
+    ( { activeIssue = dummyIssue
+      , selectedAlternative = Nothing
+      , sendVoteStatus = NotSent
+      }
+    , Cmd.none
+    )
 
 
 view : Model -> Html Msg
@@ -114,14 +129,14 @@ issueContainer model =
         , style "justify-content" "space-between"
         , style "flex-wrap" "wrap"
         ]
-        [ issueView model.activeIssue model.selectedAlternative
+        [ issueView model.activeIssue model.selectedAlternative (model.sendVoteStatus /= NotSent)
         , issueProgress model.activeIssue.maxVoters model.activeIssue
         , voteListContainer model.activeIssue.votes
         ]
 
 
-issueView : Issue -> Maybe Alternative -> Html Msg
-issueView issue selectedAlternative =
+issueView : Issue -> Maybe Alternative -> Bool -> Html Msg
+issueView issue maybeSelectedAlternative disableSubmit =
     let
         issueState =
             case issue.state of
@@ -134,13 +149,16 @@ issueView issue selectedAlternative =
                 Finished ->
                     "Finished"
 
-        selectedAlternativeId =
-            case selectedAlternative of
+        selectedAlternative =
+            case maybeSelectedAlternative of
                 Just a ->
-                    a.id
+                    a
 
                 Nothing ->
-                    ""
+                    { id = "", title = "" }
+
+        submitDisabledState =
+            disableSubmit || maybeSelectedAlternative == Nothing
     in
     div
         [ style "border" "1px solid #ddd"
@@ -153,7 +171,34 @@ issueView issue selectedAlternative =
             [ h2 [] [ text (issue.title ++ "(" ++ issueState ++ ")") ]
             , p [] [ text issue.description ]
             ]
-        , form [] (List.map (\a -> alternative a (selectedAlternativeId == a.id)) issue.alternatives)
+        , form
+            [ style "display" "flex"
+            , style "flex-direction"
+                "column"
+            , Html.Events.onSubmit NoOp
+            ]
+            [ div [] (List.map (\a -> alternative a (selectedAlternative.id == a.id)) issue.alternatives)
+            , Html.button
+                [ style "width" "10rem"
+                , style "margin-left" "auto"
+                , style "padding" "0.75rem"
+                , if submitDisabledState then
+                    style "background-color" "#ccc"
+
+                  else
+                    style "background-color" "rgb(50, 130, 215)"
+                , if submitDisabledState then
+                    style "border" "1px solid #ccc"
+
+                  else
+                    style "border" "1px solid rgb(50, 130, 215)"
+                , style "border-radius" "6px"
+                , style "color" "#fefefe"
+                , onClick (SendVote selectedAlternative)
+                , Html.Attributes.disabled submitDisabledState
+                ]
+                [ text "Submit" ]
+            ]
         ]
 
 
@@ -290,8 +335,36 @@ update msg model =
             in
             ( { model | activeIssue = issue }, Cmd.none )
 
-        SelectAlternative alt ->
-            ( { model | selectedAlternative = Just alt }, Cmd.none )
+        SelectAlternative clickedAlternative ->
+            let
+                selected =
+                    if model.sendVoteStatus /= NotSent then
+                        model.selectedAlternative
+
+                    else
+                        case model.selectedAlternative of
+                            Just alt ->
+                                -- Unselect alternative if clicking same as already selected
+                                if clickedAlternative == alt then
+                                    Nothing
+
+                                else
+                                    Just clickedAlternative
+
+                            Nothing ->
+                                Just clickedAlternative
+            in
+            ( { model | selectedAlternative = selected }, Cmd.none )
+
+        SetVoteStatus status ->
+            ( { model | sendVoteStatus = status }, Cmd.none )
+
+        SendVote alt ->
+            let
+                decodedAlt =
+                    E.object [ ( "id", E.string alt.id ) ]
+            in
+            ( { model | sendVoteStatus = Sent }, Cmd.batch [ sendVote decodedAlt, send (SetVoteStatus Success) ] )
 
 
 

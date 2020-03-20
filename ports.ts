@@ -48,7 +48,7 @@ setTimeout(() => {
         alternatives: [
             { id: "1", title: "Alternative One" },
             { id: "2", title: "Alternative Two" },
-            { id: "2", title: "Alternative Three" },
+            { id: "3", title: "Alternative Three" },
         ],
         votes: [
         ],

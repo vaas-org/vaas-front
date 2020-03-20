@@ -255,24 +255,29 @@ issueProgress voters issue =
         ]
 
 
-progressBar : Float -> Float -> Html msg
-progressBar current maxValue =
+progressBar : String -> Float -> Float -> Html msg
+progressBar title current maxValue =
     let
         pct =
             (current / maxValue) * 100
 
         pctTxt =
-            String.fromFloat pct ++ "%"
+            String.fromInt (Basics.round pct) ++ "%"
     in
-    div [ style "display" "flex", style "justify-content" "space-between" ]
-        [ progress
-            [ style "height" "1rem"
-            , style "flex" "1"
-            , Html.Attributes.max (String.fromFloat maxValue)
-            , value (String.fromFloat current)
+    div []
+        [ label []
+            [ text title ]
+        , div
+            [ style "display" "flex", style "justify-content" "space-between" ]
+            [ progress
+                [ style "height" "1rem"
+                , style "flex" "1"
+                , Html.Attributes.max (String.fromFloat maxValue)
+                , value (String.fromFloat current)
+                ]
+                [ text pctTxt ]
+            , span [ style "margin-left" "1rem" ] [ text pctTxt ]
             ]
-            [ text pctTxt ]
-        , span [ style "margin-left" "1rem" ] [ text pctTxt ]
         ]
 
 

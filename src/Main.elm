@@ -363,7 +363,7 @@ update msg model =
         SendVote alt ->
             let
                 decodedAlt =
-                    E.object [ ( "id", E.string alt.id ) ]
+                    E.object [ ( "alternativeId", E.string alt.id ) ]
             in
             ( { model | sendVoteStatus = Sent }, Cmd.batch [ sendVote decodedAlt, send (SetVoteStatus Success) ] )
 

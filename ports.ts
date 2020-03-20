@@ -5,7 +5,10 @@ const app = Elm.Main.init({
     flags: {},
 });
 
-app.ports.sendVote.subscribe(vote => console.log("sendvote: ", vote));
+app.ports.sendVote.subscribe((vote: PublicVote | AnonVote) => {
+    console.log("sendVote from elm: ", vote)
+    sendVoteToElm({ ...vote, id: "whoami" })
+});
 
 interface Alternative {
     id: string;
@@ -68,7 +71,7 @@ const sendVoteInterval = setInterval(() => {
     sendVoteToElm(v);
 
     sendVoteCounter++;
-    if (sendVoteCounter >= 10) {
+    if (sendVoteCounter >= 9) {
         clearInterval(sendVoteInterval);
     }
 }, 3000);

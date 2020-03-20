@@ -4,6 +4,7 @@ import Browser
 import Decoder exposing (decodeReceivedIssue)
 import Html exposing (Html, div, form, h1, h2, h3, header, input, label, li, p, progress, span, text, ul)
 import Html.Attributes exposing (max, name, style, type_, value)
+import Html.Events exposing (onClick)
 import Json.Decode as D
 import Json.Encode as E
 import Model exposing (Alternative, Issue, IssueState(..), Vote)
@@ -22,30 +23,18 @@ main =
 
 type alias Model =
     { activeIssue : Issue
+    , selectedAlternative : Maybe Alternative
     }
 
 
 type Msg
     = NoOp
     | ReceiveIssue E.Value
+    | SelectAlternative Alternative
 
 
 type alias Flags =
     {}
-
-
-alternativeOne : Alternative
-alternativeOne =
-    { id = "0"
-    , title = "Alternative Zero"
-    }
-
-
-alternativeTwo : Alternative
-alternativeTwo =
-    { id = "1"
-    , title = "Alternative One"
-    }
 
 
 dummyIssue : Issue
@@ -62,7 +51,7 @@ dummyIssue =
 
 init : Flags -> ( Model, Cmd Msg )
 init _ =
-    ( { activeIssue = dummyIssue }, Cmd.none )
+    ( { activeIssue = dummyIssue, selectedAlternative = Nothing }, Cmd.none )
 
 
 view : Model -> Html Msg
@@ -125,14 +114,14 @@ issueContainer model =
         , style "justify-content" "space-between"
         , style "flex-wrap" "wrap"
         ]
-        [ issueView model.activeIssue
+        [ issueView model.activeIssue model.selectedAlternative
         , issueProgress model.activeIssue.maxVoters model.activeIssue
         , voteListContainer model.activeIssue.votes
         ]
 
 
-issueView : Issue -> Html Msg
-issueView issue =
+issueView : Issue -> Maybe Alternative -> Html Msg
+issueView issue selectedAlternative =
     let
         issueState =
             case issue.state of
@@ -144,6 +133,14 @@ issueView issue =
 
                 Finished ->
                     "Finished"
+
+        selectedAlternativeId =
+            case selectedAlternative of
+                Just a ->
+                    a.id
+
+                Nothing ->
+                    ""
     in
     div
         [ style "border" "1px solid #ddd"
@@ -156,15 +153,20 @@ issueView issue =
             [ h2 [] [ text (issue.title ++ "(" ++ issueState ++ ")") ]
             , p [] [ text issue.description ]
             ]
-        , form [] (List.map (\a -> alternative a) issue.alternatives)
+        , form [] (List.map (\a -> alternative a (selectedAlternativeId == a.id)) issue.alternatives)
         ]
 
 
-alternative : Alternative -> Html Msg
-alternative alt =
+alternative : Alternative -> Bool -> Html Msg
+alternative alt selected =
     div
         [ style "margin" "0.5rem 0"
         , style "border-radius" "6px"
+        , if selected then
+            style "border" "3px solid rgb(40, 90, 150)"
+
+          else
+            style "border" "3px solid rgb(50, 130, 215)"
         , style "background-color" "rgb(50, 130, 215)"
         ]
         [ label
@@ -173,6 +175,11 @@ alternative alt =
             , style "display" "block"
             , style "width" "100%"
             , style "color" "#fefefe"
+            , if selected then
+                style "text-decoration" "underline"
+
+              else
+                style "text-decoration" "none"
             ]
             [ text alt.title ]
         , input
@@ -180,6 +187,7 @@ alternative alt =
             , name "alternative"
             , Html.Attributes.id alt.title
             , style "display" "none"
+            , onClick (SelectAlternative alt)
             ]
             []
         ]
@@ -281,6 +289,9 @@ update msg model =
                             }
             in
             ( { model | activeIssue = issue }, Cmd.none )
+
+        SelectAlternative alt ->
+            ( { model | selectedAlternative = Just alt }, Cmd.none )
 
 
 

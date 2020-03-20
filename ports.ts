@@ -48,16 +48,27 @@ setTimeout(() => {
         alternatives: [
             { id: "1", title: "Alternative One" },
             { id: "2", title: "Alternative Two" },
+            { id: "2", title: "Alternative Three" },
         ],
         votes: [
-            { id: "1", alternativeId: "1" },
-            { id: "2", alternativeId: "1" },
-            { id: "3", alternativeId: "2" },
-            // Not really the case that we have an anon vote mixed with public but hey
-            { id: "4" },
         ],
         maxVoters: 10,
     };
     console.log("Sending issue");
     sendIssueToElm(i);
-}, 3000)
+}, 500)
+
+let sendVoteCounter = 0;
+const sendVoteInterval = setInterval(() => {
+    const v = {
+        id: btoa(`${Math.random() * 10000}`),
+        alternativeId: `${Math.max(1, Math.round((Math.random() * 10) / 3))}`,
+    };
+    console.log("Sending vote", v);
+    sendVoteToElm(v);
+
+    sendVoteCounter++;
+    if (sendVoteCounter >= 10) {
+        clearInterval(sendVoteInterval);
+    }
+}, 3000);

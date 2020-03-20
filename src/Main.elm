@@ -7,7 +7,7 @@ import Html.Attributes exposing (max, name, style, type_, value)
 import Html.Events exposing (onClick)
 import Json.Decode as D
 import Json.Encode as E
-import Model exposing (Alternative, Issue, IssueState(..), Vote)
+import Model exposing (Alternative, Issue, IssueState(..), UUID, Vote)
 import Task
 
 
@@ -57,6 +57,7 @@ dummyIssue =
     , votes = []
     , alternatives = []
     , maxVoters = 0
+    , showDistribution = False
     }
 
 
@@ -239,8 +240,32 @@ alternative alt selected =
         ]
 
 
+getVotesForAlternative : UUID -> List UUID -> Int
+getVotesForAlternative alternativeId votes =
+    List.length (List.filter (\vId -> vId == alternativeId) votes)
+
+
 issueProgress : Int -> Issue -> Html msg
 issueProgress voters issue =
+    let
+        votes =
+            if issue.showDistribution then
+                List.map
+                    (\v ->
+                        case v of
+                            Model.PublicVote vv ->
+                                vv.alternativeId
+
+                            -- This should never be the case, since we already checked if we should show
+                            -- the vote distribution. Therefore the backend should only have sent us PublicVotes.
+                            Model.AnonVote _ ->
+                                ""
+                    )
+                    issue.votes
+
+            else
+                []
+    in
     div
         [ style "flex" "1 1 12rem"
         , style "border" "1px solid #ddd"
@@ -250,7 +275,12 @@ issueProgress voters issue =
         ]
         [ div []
             [ h3 [] [ text "Status" ]
-            , progressBar (Basics.toFloat (List.length issue.votes)) (Basics.toFloat voters)
+            , progressBar "Total" (Basics.toFloat (List.length issue.votes)) (Basics.toFloat voters)
+            , if issue.showDistribution then
+                div [] (List.map (\a -> progressBar a.title (Basics.toFloat (getVotesForAlternative a.id votes)) (Basics.toFloat (List.length votes))) issue.alternatives)
+
+              else
+                div [] []
             ]
         ]
 
@@ -337,6 +367,7 @@ update msg model =
                             , alternatives = []
                             , votes = []
                             , maxVoters = 0
+                            , showDistribution = False
                             }
             in
             ( { model | activeIssue = issue }, Cmd.none )

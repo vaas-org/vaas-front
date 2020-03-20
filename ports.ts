@@ -31,6 +31,7 @@ interface Issue {
     alternatives: Alternative[];
     votes: (AnonVote | PublicVote)[];
     maxVoters: number;
+    showDistribution: boolean;
 };
 
 function sendIssueToElm(issue: Issue) {
@@ -56,6 +57,7 @@ setTimeout(() => {
         votes: [
         ],
         maxVoters: 10,
+        showDistribution: true,
     };
     console.log("Sending issue");
     sendIssueToElm(i);

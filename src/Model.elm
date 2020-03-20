@@ -7,11 +7,11 @@ type alias UUID =
 
 type Vote
     = AnonVote
-        { id : String
+        { id : UUID
         }
     | PublicVote
-        { id : String
-        , alternativeId : String
+        { id : UUID
+        , alternativeId : UUID
         }
 
 
@@ -41,6 +41,7 @@ type alias Issue =
     , alternatives : List Alternative
     , votes : List Vote
     , maxVoters : Int
+    , showDistribution : Bool
     }
 
 

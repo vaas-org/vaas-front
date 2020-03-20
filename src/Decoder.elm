@@ -47,7 +47,7 @@ decodeIssueState s =
 
 decodeReceivedIssue : D.Decoder Issue
 decodeReceivedIssue =
-    D.map7 Issue
+    D.map8 Issue
         (D.field "id" D.string)
         (D.field "title" D.string)
         (D.field "description" D.string)
@@ -55,3 +55,4 @@ decodeReceivedIssue =
         (D.field "alternatives" (D.list decodeAlternative))
         (D.field "votes" (D.list decodeVote))
         (D.field "maxVoters" D.int)
+        (D.field "showDistribution" D.bool)

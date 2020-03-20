@@ -499,14 +499,9 @@ port sendWebsocketDisconnect : () -> Cmd msg
 port receiveWebsocketStatus : (E.Value -> msg) -> Sub msg
 
 
-ax : D.Decoder String
-ax =
-    D.string
-
-
 decodeWebsocketConnectionState : E.Value -> ConnectionStatus
 decodeWebsocketConnectionState state =
-    case D.decodeValue ax state of
+    case D.decodeValue D.string state of
         Ok s ->
             case s of
                 "connected" ->

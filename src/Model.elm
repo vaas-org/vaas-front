@@ -1,4 +1,4 @@
-module Model exposing (Alternative, Issue, IssueState(..), Meeting, UUID, User, Vote(..))
+module Model exposing (Alternative, Issue, IssueState(..), Meeting, UUID, User, Vote(..), WebSocketMessage(..))
 
 
 type alias UUID =
@@ -51,3 +51,8 @@ type alias Meeting =
     , start : String
     , issues : List Issue
     }
+
+
+type WebSocketMessage
+    = IssueMessage Issue
+    | VoteMessage Vote

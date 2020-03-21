@@ -1,7 +1,7 @@
-module Decoder exposing (decodeAlternative, decodeReceivedIssue, decodeVote)
+module Decoder exposing (decodeAlternative, decodeReceivedIssue, decodeVote, decodeWebSocketMessage)
 
 import Json.Decode as D
-import Model exposing (Alternative, Issue, IssueState(..), Vote(..))
+import Model exposing (Alternative, Issue, IssueState(..), Vote(..), WebSocketMessage(..))
 
 
 decodePublicVote : D.Decoder Vote
@@ -56,3 +56,22 @@ decodeReceivedIssue =
         (D.field "votes" (D.list decodeVote))
         (D.field "max_voters" D.int)
         (D.field "show_distribution" D.bool)
+
+
+decodeWebSocketMessage : D.Decoder WebSocketMessage
+decodeWebSocketMessage =
+    D.field "type" D.string
+        |> D.andThen decodeMessageType
+
+
+decodeMessageType : String -> D.Decoder WebSocketMessage
+decodeMessageType messageType =
+    case messageType of
+        "issue" ->
+            decodeReceivedIssue |> D.map IssueMessage
+
+        "vote" ->
+            decodeVote |> D.map VoteMessage
+
+        _ ->
+            D.fail <| "Trying to decode unknown message type: " ++ messageType

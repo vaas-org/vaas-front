@@ -1,13 +1,13 @@
 port module Main exposing (main)
 
 import Browser
-import Decoder exposing (decodeReceivedIssue, decodeVote)
+import Decoder exposing (decodeVote, decodeWebSocketMessage)
 import Html exposing (Html, div, form, h1, h2, h3, header, input, label, li, p, progress, span, text, ul)
 import Html.Attributes exposing (max, name, style, type_, value)
 import Html.Events exposing (onClick)
 import Json.Decode as D
 import Json.Encode as E
-import Model exposing (Alternative, Issue, IssueState(..), UUID, Vote)
+import Model exposing (Alternative, Issue, IssueState(..), UUID, Vote, WebSocketMessage(..))
 import Task
 
 
@@ -47,11 +47,11 @@ type alias Model =
 
 type Msg
     = NoOp
-    | ReceiveIssue E.Value
+    | ReceiveIssue Issue
     | SelectAlternative Alternative
     | SendVote Alternative
     | SetVoteStatus EventStatus
-    | ReceiveVote E.Value -- Consider if we should expect issueId here too?
+    | ReceiveVote Vote -- Consider if we should expect issueId here too?
     | SendWebsocketConnect
     | SendWebsocketDisconnect
     | ReceiveWebsocketConnectionState E.Value
@@ -397,24 +397,7 @@ update msg model =
         ReceiveWebsocketConnectionState state ->
             ( { model | websocketConnection = decodeWebsocketConnectionState state }, Cmd.none )
 
-        ReceiveIssue i ->
-            let
-                issue =
-                    case D.decodeValue decodeReceivedIssue i of
-                        Ok okIssue ->
-                            okIssue
-
-                        Err e ->
-                            { id = "0"
-                            , title = "Error decoding issue"
-                            , description = D.errorToString e
-                            , state = NotStarted
-                            , alternatives = []
-                            , votes = []
-                            , maxVoters = 0
-                            , showDistribution = False
-                            }
-            in
+        ReceiveIssue issue ->
             ( { model | activeIssue = issue }, Cmd.none )
 
         SelectAlternative clickedAlternative ->
@@ -448,7 +431,7 @@ update msg model =
             in
             ( { model | sendVoteStatus = Sent }, Cmd.batch [ sendVote decodedAlt, send (SetVoteStatus Success) ] )
 
-        ReceiveVote v ->
+        ReceiveVote vote ->
             let
                 modelIssue =
                     model.activeIssue
@@ -458,12 +441,7 @@ update msg model =
                 --     else
                 --         model.activeIssue
                 updatedIssue =
-                    case D.decodeValue decodeVote v of
-                        Ok okVote ->
-                            { modelIssue | votes = okVote :: modelIssue.votes }
-
-                        Err _ ->
-                            modelIssue
+                    { modelIssue | votes = vote :: modelIssue.votes }
             in
             ( { model | activeIssue = updatedIssue }, Cmd.none )
 
@@ -481,10 +459,26 @@ send msg =
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
-        [ receiveIssue ReceiveIssue
-        , receiveVote ReceiveVote
-        , receiveWebsocketStatus ReceiveWebsocketConnectionState
+        [ receiveWebsocketStatus ReceiveWebsocketConnectionState
+        , receiveWebSocketMessage webSocketMessageToMsg
         ]
+
+
+-- Probably not a great name
+webSocketMessageToMsg : E.Value -> Msg
+webSocketMessageToMsg value =
+    case D.decodeValue decodeWebSocketMessage value of
+        Ok message ->
+            case message of
+                IssueMessage issue ->
+                    ReceiveIssue issue
+
+                VoteMessage vote ->
+                    ReceiveVote vote
+
+        Err _ ->
+            -- TODO Handle error somehow
+            NoOp
 
 
 port sendVote : E.Value -> Cmd msg
@@ -497,6 +491,9 @@ port sendWebsocketDisconnect : () -> Cmd msg
 
 
 port receiveWebsocketStatus : (E.Value -> msg) -> Sub msg
+
+
+port receiveWebSocketMessage : (E.Value -> msg) -> Sub msg
 
 
 decodeWebsocketConnectionState : E.Value -> ConnectionStatus
@@ -524,9 +521,3 @@ decodeWebsocketConnectionState state =
 
         Err e ->
             Errored ("failed to decode as string: " ++ D.errorToString e)
-
-
-port receiveIssue : (E.Value -> msg) -> Sub msg
-
-
-port receiveVote : (E.Value -> msg) -> Sub msg

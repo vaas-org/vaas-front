@@ -8,7 +8,7 @@ const app = Elm.Main.init({
 
 app.ports.sendVote.subscribe((vote: PublicVote | AnonVote) => {
     console.log("sendVote from elm: ", vote)
-    sendVoteToElm({ ...vote, id: "whoami" })
+    sendMessageToElm({ ...vote, id: "whoami", type: "vote" })
 });
 
 app.ports.sendWebsocketConnect.subscribe(() => {
@@ -52,12 +52,8 @@ interface Issue {
     showDistribution: boolean;
 };
 
-function sendIssueToElm(issue: Issue) {
-    app.ports.receiveIssue.send(issue);
-}
-
-function sendVoteToElm(vote: PublicVote | AnonVote) {
-    app.ports.receiveVote.send(vote);
+function sendMessageToElm(issue: unknown) {
+    app.ports.receiveWebSocketMessage.send(issue);
 }
 
 function connectToWebsocket() {
@@ -66,7 +62,7 @@ function connectToWebsocket() {
 
         // Try to parse the data as JSON
         const message = JSON.parse(data.data)
-        sendIssueToElm(message);
+        sendMessageToElm(message);
     })
 }
 
@@ -75,9 +71,10 @@ const sendVoteInterval = setInterval(() => {
     const v = {
         id: btoa(`${Math.random() * 10000}`),
         alternativeId: `${Math.max(1, Math.round((Math.random() * 10) / 3))}`,
+        type: "vote"
     };
     console.log("Sending vote", v);
-    sendVoteToElm(v);
+    sendMessageToElm(v);
 
     sendVoteCounter++;
     if (sendVoteCounter >= 9) {

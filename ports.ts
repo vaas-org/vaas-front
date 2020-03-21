@@ -8,7 +8,7 @@ const app = Elm.Main.init({
 
 app.ports.sendVote.subscribe((vote: PublicVote | AnonVote) => {
     console.log("sendVote from elm: ", vote)
-    sendMessageToElm({ ...vote, id: "whoami", type: "vote" })
+    send({ ...vote, user_id: "whoami", type: "vote" });
 });
 
 app.ports.sendWebsocketConnect.subscribe(() => {
@@ -69,12 +69,12 @@ function connectToWebsocket() {
 let sendVoteCounter = 0;
 const sendVoteInterval = setInterval(() => {
     const v = {
-        id: btoa(`${Math.random() * 10000}`),
-        alternativeId: `${Math.max(1, Math.round((Math.random() * 10) / 3))}`,
+        user_id: btoa(`${Math.random() * 10000}`),
+        alternative_id: `${Math.max(1, Math.round((Math.random() * 10) / 3))}`,
         type: "vote"
     };
     console.log("Sending vote", v);
-    sendMessageToElm(v);
+    send(v);
 
     sendVoteCounter++;
     if (sendVoteCounter >= 9) {

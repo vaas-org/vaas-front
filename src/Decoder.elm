@@ -7,8 +7,8 @@ import Model exposing (Alternative, Issue, IssueState(..), Vote(..), WebSocketMe
 decodePublicVote : D.Decoder Vote
 decodePublicVote =
     D.map2 (\id alternativeId -> PublicVote { id = id, alternativeId = alternativeId })
-        (D.field "id" D.string)
-        (D.field "alternativeId" D.string)
+        (D.field "user_id" D.string)
+        (D.field "alternative_id" D.string)
 
 
 decodeAnonVote : D.Decoder Vote

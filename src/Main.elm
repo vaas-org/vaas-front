@@ -2,9 +2,9 @@ port module Main exposing (main)
 
 import Browser
 import Decoder exposing (decodeVote, decodeWebSocketMessage)
-import Html exposing (Html, div, form, h1, h2, h3, header, input, label, li, p, progress, span, text, ul)
-import Html.Attributes exposing (max, name, style, type_, value)
-import Html.Events exposing (onClick)
+import Html exposing (Html, button, div, form, h1, h2, h3, header, input, label, li, p, progress, span, text, ul)
+import Html.Attributes exposing (for, max, name, style, type_, value)
+import Html.Events exposing (onClick, onInput)
 import Json.Decode as D
 import Json.Encode as E
 import Model exposing (Alternative, Issue, IssueState(..), UUID, Vote, WebSocketMessage(..))
@@ -42,6 +42,7 @@ type alias Model =
     , selectedAlternative : Maybe Alternative
     , sendVoteStatus : EventStatus
     , websocketConnection : ConnectionStatus
+    , username : String
     }
 
 
@@ -55,6 +56,8 @@ type Msg
     | SendWebsocketConnect
     | SendWebsocketDisconnect
     | ReceiveWebsocketConnectionState E.Value
+    | SetUsername String
+    | SendLogin String
 
 
 type alias Flags =
@@ -80,6 +83,7 @@ init _ =
       , selectedAlternative = Nothing
       , sendVoteStatus = NotSent
       , websocketConnection = NotConnectedYet
+      , username = ""
       }
     , send SendWebsocketConnect
     )
@@ -98,7 +102,7 @@ view model =
         -- @ToDo: if wide screen add some more padding
         , style "grid-template-columns" "1fr 80% 1fr"
         ]
-        [ banner model.websocketConnection
+        [ banner model.websocketConnection model.username
         , body model
         , footer
         ]
@@ -126,13 +130,20 @@ connectionStatusStr status =
             "Connection error: " ++ e
 
 
-banner : ConnectionStatus -> Html msg
-banner stat =
+banner : ConnectionStatus -> String -> Html Msg
+banner stat username =
     header
         [ style "grid-column" "span 3"
         , style "margin" "0 1.5rem"
         ]
-        [ h1 [] [ text ("VaaS" ++ " - " ++ connectionStatusStr stat) ]
+        [ div [ style "display" "flex", style "align-items" "center", style "justify-content" "space-between" ]
+            [ h1 [] [ text ("VaaS" ++ " - " ++ connectionStatusStr stat) ]
+            , div []
+                [ label [ for "username" ] [ text "Username: " ]
+                , input [ style "height" "16px", onInput SetUsername, value username ] []
+                , button [ onClick (SendLogin username) ] [ text "📞" ]
+                ]
+            ]
         ]
 
 
@@ -395,7 +406,13 @@ update msg model =
             ( model, sendWebsocketDisconnect () )
 
         ReceiveWebsocketConnectionState state ->
-            ( { model | websocketConnection = decodeWebsocketConnectionState state }, Cmd.none )
+            ( { model | websocketConnection = decodeWebsocketConnectionState state }
+            , if decodeWebsocketConnectionState state == Connected then
+                send NoOp
+
+              else
+                Cmd.none
+            )
 
         ReceiveIssue issue ->
             ( { model | activeIssue = issue }, Cmd.none )
@@ -427,7 +444,7 @@ update msg model =
         SendVote alt ->
             let
                 decodedAlt =
-                    E.object [ ( "alternative_id", E.string alt.id ) ]
+                    E.object [ ( "alternative_id", E.string alt.id ), ( "user_id", E.string model.username ) ]
             in
             ( { model | sendVoteStatus = Sent }, Cmd.batch [ sendVote decodedAlt, send (SetVoteStatus Success) ] )
 
@@ -444,6 +461,12 @@ update msg model =
                     { modelIssue | votes = vote :: modelIssue.votes }
             in
             ( { model | activeIssue = updatedIssue }, Cmd.none )
+
+        SetUsername username ->
+            ( { model | username = username }, Cmd.none )
+
+        SendLogin username ->
+            ( model, sendLogin (E.string username) )
 
 
 
@@ -479,6 +502,9 @@ webSocketMessageToMsg value =
         Err _ ->
             -- TODO Handle error somehow
             NoOp
+
+
+port sendLogin : E.Value -> Cmd msg
 
 
 port sendVote : E.Value -> Cmd msg

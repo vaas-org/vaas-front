@@ -7,7 +7,7 @@ import Html.Attributes exposing (for, max, name, style, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Json.Decode as D
 import Json.Encode as E
-import Model exposing (Alternative, Issue, IssueState(..), UUID, Vote, WebSocketMessage(..))
+import Model exposing (Alternative, Client, Issue, IssueState(..), UUID, Vote, WebSocketMessage(..))
 import Task
 
 
@@ -43,6 +43,7 @@ type alias Model =
     , sendVoteStatus : EventStatus
     , websocketConnection : ConnectionStatus
     , username : String
+    , client : Client
     }
 
 
@@ -57,6 +58,7 @@ type Msg
     | SendWebsocketDisconnect
     | ReceiveWebsocketConnectionState E.Value
     | SetUsername String
+    | SetClient Client
     | SendLogin String
 
 
@@ -84,6 +86,7 @@ init _ =
       , sendVoteStatus = NotSent
       , websocketConnection = NotConnectedYet
       , username = ""
+      , client = { id = "", username = "" }
       }
     , send SendWebsocketConnect
     )
@@ -104,7 +107,7 @@ view model =
         ]
         [ banner model.websocketConnection model.username
         , body model
-        , footer
+        , footer model.client
         ]
 
 
@@ -147,13 +150,13 @@ banner stat username =
         ]
 
 
-footer : Html msg
-footer =
+footer : Client -> Html msg
+footer client =
     div
         [ style "grid-column" "2"
         , style "margin" "auto auto .25rem"
         ]
-        [ span [] [ text "footer" ]
+        [ span [] [ text ("Connected as " ++ client.username ++ "(" ++ client.id ++ ")") ]
         ]
 
 
@@ -465,8 +468,11 @@ update msg model =
         SetUsername username ->
             ( { model | username = username }, Cmd.none )
 
+        SetClient client ->
+            ( { model | client = client }, Cmd.none )
+
         SendLogin username ->
-            ( model, sendLogin (E.string username) )
+            ( model, sendLogin (E.object [ ( "user_id", E.string model.client.id ), ( "username", E.string username ) ]) )
 
 
 
@@ -498,6 +504,9 @@ webSocketMessageToMsg value =
 
                 VoteMessage vote ->
                     ReceiveVote vote
+
+                ClientMessage client ->
+                    SetClient client
 
         Err _ ->
             -- TODO Handle error somehow

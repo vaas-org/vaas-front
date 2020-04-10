@@ -11,9 +11,9 @@ app.ports.sendVote.subscribe((vote: PublicVote | AnonVote) => {
     send({ ...vote, user_id: vote.user_id, type: "vote" });
 });
 
-app.ports.sendLogin.subscribe((username: string) => {
-    console.log("sendLogin from elm: ", username)
-    send({ username, type: "login" });
+app.ports.sendLogin.subscribe((login: Login) => {
+    console.log("sendLogin from elm: ", login)
+    send({ ...login, type: "login" });
 });
 
 app.ports.sendWebsocketConnect.subscribe(() => {
@@ -32,6 +32,11 @@ app.ports.sendWebsocketDisconnect.subscribe(() => {
     disconnect();
     app.ports.receiveWebsocketStatus.send("disconnected");
 });
+
+interface Login {
+    userId: string;
+    username: string;
+}
 
 interface Alternative {
     id: string;

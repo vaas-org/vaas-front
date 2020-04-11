@@ -33,7 +33,7 @@ decodeClient : D.Decoder Client
 decodeClient =
     D.map2 Client
         (D.field "id" D.string)
-        (D.field "username" D.string)
+        (D.field "username" (D.nullable D.string))
 
 
 decodeIssueState : String -> D.Decoder IssueState

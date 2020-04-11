@@ -47,7 +47,7 @@ type alias Issue =
 
 type alias Client =
     { id : UUID
-    , username : String
+    , username : Maybe String
     }
 
 

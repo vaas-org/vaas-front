@@ -86,7 +86,7 @@ init _ =
       , sendVoteStatus = NotSent
       , websocketConnection = NotConnectedYet
       , username = ""
-      , client = { id = "", username = "" }
+      , client = { id = "", username = Nothing }
       }
     , send SendWebsocketConnect
     )
@@ -156,7 +156,14 @@ footer client =
         [ style "grid-column" "2"
         , style "margin" "auto auto .25rem"
         ]
-        [ span [] [ text ("Connected as " ++ client.username ++ "(" ++ client.id ++ ")") ]
+        [ span []
+            [ case client.username of
+                Just username ->
+                    text ("Connected as " ++ username ++ "(" ++ client.id ++ ")")
+
+                Nothing ->
+                    text ("Connected as (" ++ client.id ++ ")")
+            ]
         ]
 
 
@@ -493,7 +500,10 @@ subscriptions _ =
         ]
 
 
+
 -- Probably not a great name
+
+
 webSocketMessageToMsg : E.Value -> Msg
 webSocketMessageToMsg value =
     case D.decodeValue decodeWebSocketMessage value of

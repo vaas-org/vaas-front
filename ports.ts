@@ -8,7 +8,12 @@ const app = Elm.Main.init({
 
 app.ports.sendVote.subscribe((vote: PublicVote | AnonVote) => {
     console.log("sendVote from elm: ", vote)
-    send({ ...vote, user_id: "whoami", type: "vote" });
+    send({ ...vote, user_id: vote.user_id, type: "vote" });
+});
+
+app.ports.sendLogin.subscribe((login: Login) => {
+    console.log("sendLogin from elm: ", login)
+    send({ ...login, type: "login" });
 });
 
 app.ports.sendWebsocketConnect.subscribe(() => {
@@ -28,6 +33,11 @@ app.ports.sendWebsocketDisconnect.subscribe(() => {
     app.ports.receiveWebsocketStatus.send("disconnected");
 });
 
+interface Login {
+    userId: string;
+    username: string;
+}
+
 interface Alternative {
     id: string;
     title: string;
@@ -35,10 +45,12 @@ interface Alternative {
 
 interface AnonVote {
     id: string;
+    user_id: string; // yolo hack
 }
 interface PublicVote {
     id: string;
     alternativeId: string;
+    user_id: string; // yolo hack
 }
 
 interface Issue {

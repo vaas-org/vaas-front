@@ -2,12 +2,12 @@ port module Main exposing (main)
 
 import Browser
 import Decoder exposing (decodeVote, decodeWebSocketMessage)
-import Html exposing (Html, div, form, h1, h2, h3, header, input, label, li, p, progress, span, text, ul)
-import Html.Attributes exposing (max, name, style, type_, value)
-import Html.Events exposing (onClick)
+import Html exposing (Html, button, div, form, h1, h2, h3, header, input, label, li, p, progress, span, text, ul)
+import Html.Attributes exposing (for, max, name, style, type_, value)
+import Html.Events exposing (onClick, onInput)
 import Json.Decode as D
 import Json.Encode as E
-import Model exposing (Alternative, Issue, IssueState(..), UUID, Vote, WebSocketMessage(..))
+import Model exposing (Alternative, Client, Issue, IssueState(..), UUID, Vote, WebSocketMessage(..))
 import Task
 
 
@@ -42,6 +42,8 @@ type alias Model =
     , selectedAlternative : Maybe Alternative
     , sendVoteStatus : EventStatus
     , websocketConnection : ConnectionStatus
+    , username : String
+    , client : Client
     }
 
 
@@ -55,6 +57,9 @@ type Msg
     | SendWebsocketConnect
     | SendWebsocketDisconnect
     | ReceiveWebsocketConnectionState E.Value
+    | SetUsername String
+    | SetClient Client
+    | SendLogin String
 
 
 type alias Flags =
@@ -80,6 +85,8 @@ init _ =
       , selectedAlternative = Nothing
       , sendVoteStatus = NotSent
       , websocketConnection = NotConnectedYet
+      , username = ""
+      , client = { id = "", username = Nothing }
       }
     , send SendWebsocketConnect
     )
@@ -98,9 +105,9 @@ view model =
         -- @ToDo: if wide screen add some more padding
         , style "grid-template-columns" "1fr 80% 1fr"
         ]
-        [ banner model.websocketConnection
+        [ banner model.websocketConnection model.username
         , body model
-        , footer
+        , footer model.client
         ]
 
 
@@ -126,23 +133,37 @@ connectionStatusStr status =
             "Connection error: " ++ e
 
 
-banner : ConnectionStatus -> Html msg
-banner stat =
+banner : ConnectionStatus -> String -> Html Msg
+banner stat username =
     header
         [ style "grid-column" "span 3"
         , style "margin" "0 1.5rem"
         ]
-        [ h1 [] [ text ("VaaS" ++ " - " ++ connectionStatusStr stat) ]
+        [ div [ style "display" "flex", style "align-items" "center", style "justify-content" "space-between" ]
+            [ h1 [] [ text ("VaaS" ++ " - " ++ connectionStatusStr stat) ]
+            , div []
+                [ label [ for "username" ] [ text "Username: " ]
+                , input [ style "height" "16px", onInput SetUsername, value username ] []
+                , button [ onClick (SendLogin username) ] [ text "📞" ]
+                ]
+            ]
         ]
 
 
-footer : Html msg
-footer =
+footer : Client -> Html msg
+footer client =
     div
         [ style "grid-column" "2"
         , style "margin" "auto auto .25rem"
         ]
-        [ span [] [ text "footer" ]
+        [ span []
+            [ case client.username of
+                Just username ->
+                    text ("Connected as " ++ username ++ "(" ++ client.id ++ ")")
+
+                Nothing ->
+                    text ("Connected as (" ++ client.id ++ ")")
+            ]
         ]
 
 
@@ -395,7 +416,13 @@ update msg model =
             ( model, sendWebsocketDisconnect () )
 
         ReceiveWebsocketConnectionState state ->
-            ( { model | websocketConnection = decodeWebsocketConnectionState state }, Cmd.none )
+            ( { model | websocketConnection = decodeWebsocketConnectionState state }
+            , if decodeWebsocketConnectionState state == Connected then
+                send NoOp
+
+              else
+                Cmd.none
+            )
 
         ReceiveIssue issue ->
             ( { model | activeIssue = issue }, Cmd.none )
@@ -427,7 +454,7 @@ update msg model =
         SendVote alt ->
             let
                 decodedAlt =
-                    E.object [ ( "alternative_id", E.string alt.id ) ]
+                    E.object [ ( "alternative_id", E.string alt.id ), ( "user_id", E.string model.username ) ]
             in
             ( { model | sendVoteStatus = Sent }, Cmd.batch [ sendVote decodedAlt, send (SetVoteStatus Success) ] )
 
@@ -444,6 +471,15 @@ update msg model =
                     { modelIssue | votes = vote :: modelIssue.votes }
             in
             ( { model | activeIssue = updatedIssue }, Cmd.none )
+
+        SetUsername username ->
+            ( { model | username = username }, Cmd.none )
+
+        SetClient client ->
+            ( { model | client = client }, Cmd.none )
+
+        SendLogin username ->
+            ( model, sendLogin (E.object [ ( "user_id", E.string model.client.id ), ( "username", E.string username ) ]) )
 
 
 
@@ -464,7 +500,10 @@ subscriptions _ =
         ]
 
 
+
 -- Probably not a great name
+
+
 webSocketMessageToMsg : E.Value -> Msg
 webSocketMessageToMsg value =
     case D.decodeValue decodeWebSocketMessage value of
@@ -476,9 +515,15 @@ webSocketMessageToMsg value =
                 VoteMessage vote ->
                     ReceiveVote vote
 
+                ClientMessage client ->
+                    SetClient client
+
         Err _ ->
             -- TODO Handle error somehow
             NoOp
+
+
+port sendLogin : E.Value -> Cmd msg
 
 
 port sendVote : E.Value -> Cmd msg

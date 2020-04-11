@@ -1,7 +1,7 @@
 module Decoder exposing (decodeAlternative, decodeReceivedIssue, decodeVote, decodeWebSocketMessage)
 
 import Json.Decode as D
-import Model exposing (Alternative, Issue, IssueState(..), Vote(..), WebSocketMessage(..))
+import Model exposing (Alternative, Client, Issue, IssueState(..), Vote(..), WebSocketMessage(..))
 
 
 decodePublicVote : D.Decoder Vote
@@ -27,6 +27,13 @@ decodeAlternative =
     D.map2 Alternative
         (D.field "id" D.string)
         (D.field "title" D.string)
+
+
+decodeClient : D.Decoder Client
+decodeClient =
+    D.map2 Client
+        (D.field "id" D.string)
+        (D.field "username" (D.nullable D.string))
 
 
 decodeIssueState : String -> D.Decoder IssueState
@@ -72,6 +79,9 @@ decodeMessageType messageType =
 
         "vote" ->
             decodeVote |> D.map VoteMessage
+
+        "client" ->
+            decodeClient |> D.map ClientMessage
 
         _ ->
             D.fail <| "Trying to decode unknown message type: " ++ messageType

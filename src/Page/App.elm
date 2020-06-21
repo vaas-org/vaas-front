@@ -4,6 +4,7 @@ import Html exposing (Html, button, div, h1, header, input, label, span, text)
 import Html.Attributes exposing (for, style, value)
 import Html.Events exposing (onClick, onInput)
 import Model exposing (Client, ConnectionStatus(..), Model, Msg(..))
+import Page.Portal
 import Page.Vote exposing (issueContainer)
 
 
@@ -34,42 +35,66 @@ view model =
         -- @ToDo: if wide screen add some more padding
         , style "grid-template-columns" "1fr 80% 1fr"
         ]
-        [ banner model.websocketConnection model.username
-        , body model
-        , footer model.client
+        [ banner
+        , if model.websocketConnection == Model.Connected then
+            case model.client of
+                Just client ->
+                    case client.username of
+                        -- @ToDo: This checks if the user is authenticated
+                        -- as in 'should receive some data back'
+                        -- This can be a guest account just fine
+                        Just _ ->
+                            body model
+
+                        Nothing ->
+                            Page.Portal.view model.username
+
+                Nothing ->
+                    -- loading page mby
+                    Page.Portal.view model.username
+
+          else
+            -- we should technically show an error here
+            Page.Portal.view model.username
+        , footer model.websocketConnection model.client
         ]
 
 
-banner : ConnectionStatus -> String -> Html Msg
-banner stat username =
+banner : Html msg
+banner =
     header
         [ style "grid-column" "span 3"
         , style "margin" "0 1.5rem"
         ]
         [ div [ style "display" "flex", style "align-items" "center", style "justify-content" "space-between" ]
-            [ h1 [] [ text ("VaaS" ++ " - " ++ connectionStatusStr stat) ]
-            , div []
-                [ label [ for "username" ] [ text "Username: " ]
-                , input [ style "height" "16px", onInput SetUsername, value username ] []
-                , button [ onClick (SendLogin username) ] [ text "📞" ]
-                ]
+            [ h1 [] [ text "VaaS" ]
             ]
         ]
 
 
-footer : Client -> Html msg
-footer client =
+footer : ConnectionStatus -> Maybe Client -> Html msg
+footer connection client =
     div
         [ style "grid-column" "2"
         , style "margin" "auto auto .25rem"
         ]
         [ span []
-            [ case client.username of
-                Just username ->
-                    text ("Connected as " ++ username ++ "(" ++ client.id ++ ")")
+            [ case connection of
+                Connected ->
+                    case client of
+                        Just c ->
+                            case c.username of
+                                Just username ->
+                                    text ("Connected as " ++ username ++ "(" ++ c.sessionId ++ ")")
 
-                Nothing ->
-                    text ("Connected as (" ++ client.id ++ ")")
+                                Nothing ->
+                                    text ("Connected (" ++ c.sessionId ++ ")")
+
+                        Nothing ->
+                            text "Connected"
+
+                _ ->
+                    text (connectionStatusStr connection)
             ]
         ]
 

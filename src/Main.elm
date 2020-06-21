@@ -26,7 +26,7 @@ init _ =
       , sendVoteStatus = NotSent
       , websocketConnection = NotConnectedYet
       , username = ""
-      , client = { id = "", username = Nothing }
+      , client = Nothing
       }
     , send SendWebsocketConnect
     )
@@ -109,10 +109,16 @@ update msg model =
             ( { model | username = username }, Cmd.none )
 
         SetClient client ->
-            ( { model | client = client }, Cmd.none )
+            ( { model | client = Just client }, Cmd.none )
 
         SendLogin username ->
-            ( model, sendLogin (E.object [ ( "user_id", E.string model.client.id ), ( "username", E.string username ) ]) )
+            case model.client of
+                Just client ->
+                    ( model, sendLogin (E.object [ ( "user_id", E.string client.sessionId ), ( "username", E.string username ) ]) )
+
+                Nothing ->
+                    -- This shouldn't happen, but Elm makes us check it anyways.
+                    ( model, Cmd.none )
 
 
 

@@ -48,7 +48,7 @@ type alias Issue =
 
 
 type alias Client =
-    { id : UUID
+    { sessionId : UUID
     , username : Maybe String
     }
 
@@ -89,7 +89,7 @@ type alias Model =
     , sendVoteStatus : EventStatus
     , websocketConnection : ConnectionStatus
     , username : String
-    , client : Client
+    , client : Maybe Client
     }
 
 

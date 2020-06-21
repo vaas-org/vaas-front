@@ -76,20 +76,21 @@ function connectToWebsocket() {
         const message = JSON.parse(data.data)
         sendMessageToElm(message);
     })
+
+    let sendVoteCounter = 0;
+    const sendVoteInterval = setInterval(() => {
+        const v = {
+            user_id: btoa(`${Math.random() * 10000}`),
+            alternative_id: `${Math.max(1, Math.round((Math.random() * 10) / 3))}`,
+            type: "vote"
+        };
+        console.log("Sending vote", v);
+        send(v);
+
+        sendVoteCounter++;
+        if (sendVoteCounter >= 9) {
+            clearInterval(sendVoteInterval);
+        }
+    }, 3000);
 }
 
-let sendVoteCounter = 0;
-const sendVoteInterval = setInterval(() => {
-    const v = {
-        user_id: btoa(`${Math.random() * 10000}`),
-        alternative_id: `${Math.max(1, Math.round((Math.random() * 10) / 3))}`,
-        type: "vote"
-    };
-    console.log("Sending vote", v);
-    send(v);
-
-    sendVoteCounter++;
-    if (sendVoteCounter >= 9) {
-        clearInterval(sendVoteInterval);
-    }
-}, 3000);

@@ -28,7 +28,7 @@ init _ =
       , username = ""
       , client = { id = "", username = Nothing }
       }
-    , send SendWebsocketConnect
+    , Cmd.none
     )
 
 

@@ -70,13 +70,18 @@ function sendMessageToElm(issue: unknown) {
 
 function connectToWebsocket() {
     connect((data: { data: string }) => {
-        console.log("recvd", data)
-
         // Try to parse the data as JSON
         const message = JSON.parse(data.data)
+        console.group(`received message of type '${message.type}'`);
+        console.log("raw data", data);
+        console.table(message);
+        console.groupEnd();
         sendMessageToElm(message);
     })
+    startDummyVotes();
+}
 
+function startDummyVotes() {
     let sendVoteCounter = 0;
     const sendVoteInterval = setInterval(() => {
         const v = {
@@ -84,7 +89,7 @@ function connectToWebsocket() {
             alternative_id: `${Math.max(1, Math.round((Math.random() * 10) / 3))}`,
             type: "vote"
         };
-        console.log("Sending vote", v);
+        console.debug("Sending vote", v);
         send(v);
 
         sendVoteCounter++;

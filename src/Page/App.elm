@@ -38,16 +38,8 @@ view model =
         [ banner
         , if model.websocketConnection == Model.Connected then
             case model.client of
-                Just client ->
-                    case client.username of
-                        -- @ToDo: This checks if the user is authenticated
-                        -- as in 'should receive some data back'
-                        -- This can be a guest account just fine
-                        Just _ ->
-                            body model
-
-                        Nothing ->
-                            Page.Portal.view model.username
+                Just _ ->
+                    body model
 
                 Nothing ->
                     -- loading page mby

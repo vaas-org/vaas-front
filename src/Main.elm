@@ -117,8 +117,7 @@ update msg model =
                     ( model, sendLogin (E.object [ ( "user_id", E.string client.sessionId ), ( "username", E.string username ) ]) )
 
                 Nothing ->
-                    -- This shouldn't happen, but Elm makes us check it anyways.
-                    ( model, Cmd.none )
+                    ( model, sendLogin (E.object [ ( "username", E.string username ) ]) )
 
 
 

@@ -1,4 +1,4 @@
-import { Elm } from "./src/Main.elm";
+import { Elm } from "../src/Main.elm";
 import { connect, disconnect, send } from "./websocket";
 
 const app = Elm.Main.init({
@@ -17,20 +17,16 @@ app.ports.sendLogin.subscribe((login: Login) => {
 });
 
 app.ports.sendWebsocketConnect.subscribe(() => {
-    console.info("WS connect request")
-    app.ports.receiveWebsocketStatus.send("connecting");
-    setTimeout(() => {
-        console.log("simulating some connection delay")
-        connectToWebsocket();
-        app.ports.receiveWebsocketStatus.send("connected");
-    }, 1000);
+  app.ports.receiveWebsocketStatus.send("connecting");
+  connectToWebsocket(
+    () => app.ports.receiveWebsocketStatus.send("connected"),
+    () => app.ports.receiveWebsocketStatus.send("disconnected")
+  );
 });
 
 app.ports.sendWebsocketDisconnect.subscribe(() => {
-    console.info("WS disconnect request")
     app.ports.receiveWebsocketStatus.send("disconnecting");
     disconnect();
-    app.ports.receiveWebsocketStatus.send("disconnected");
 });
 
 interface Login {
@@ -68,17 +64,23 @@ function sendMessageToElm(issue: unknown) {
     app.ports.receiveWebSocketMessage.send(issue);
 }
 
-function connectToWebsocket() {
-    connect((data: { data: string }) => {
-        // Try to parse the data as JSON
-        const message = JSON.parse(data.data)
-        console.group(`received message of type '${message.type}'`);
-        console.log("raw data", data);
-        console.table(message);
-        console.groupEnd();
-        sendMessageToElm(message);
-    })
-    startDummyVotes();
+function connectToWebsocket(onConnect: () => void, onDisconnect: () => void) {
+  connect(
+    (data: { data: string }) => {
+      // Try to parse the data as JSON
+      const message = JSON.parse(data.data);
+      console.group(`received message of type '${message.type}'`);
+      console.log("raw data", data);
+      console.table(message);
+      console.groupEnd();
+      sendMessageToElm(message);
+    },
+    () => {
+      onConnect();
+      startDummyVotes();
+    },
+    onDisconnect
+  );
 }
 
 function startDummyVotes() {
@@ -98,4 +100,3 @@ function startDummyVotes() {
         }
     }, 3000);
 }
-

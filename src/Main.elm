@@ -160,6 +160,7 @@ update msg model =
                     ( model, sendLogin (E.object [ ( "user_id", E.string client.sessionId ), ( "username", E.string username ) ]) )
 
                 Nothing ->
+                    -- Connect first, and then send a new message about the login. I guess?
                     ( model, sendLogin (E.object [ ( "username", E.string username ) ]) )
 
 

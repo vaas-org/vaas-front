@@ -7,6 +7,10 @@ type alias UUID =
     String
 
 
+type alias SessionId =
+    UUID
+
+
 type Vote
     = AnonVote
         { id : UUID
@@ -80,6 +84,7 @@ type ConnectionStatus
     | Connected
     | Disconnecting
     | Disconnected
+    | Reconnect SessionId
     | Errored String
 
 
@@ -101,6 +106,7 @@ type Msg
     | SetVoteStatus EventStatus
     | ReceiveVote Vote -- Consider if we should expect issueId here too?
     | SendWebsocketConnect
+    | SendWebsocketReconnect SessionId
     | SendWebsocketDisconnect
     | ReceiveWebsocketConnectionState E.Value
     | SetUsername String
@@ -109,7 +115,8 @@ type Msg
 
 
 type alias Flags =
-    {}
+    { sessionId : Maybe SessionId
+    }
 
 
 dummyIssue : Issue

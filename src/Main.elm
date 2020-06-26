@@ -20,13 +20,19 @@ main =
 
 
 init : Flags -> ( Model, Cmd Msg )
-init _ =
+init flags =
     ( { activeIssue = dummyIssue
       , selectedAlternative = Nothing
       , sendVoteStatus = NotSent
       , websocketConnection = NotConnectedYet
       , username = ""
-      , client = Nothing
+      , client =
+            case flags.sessionId of
+                Just sessionId ->
+                    Just { sessionId = sessionId, username = Nothing }
+
+                Nothing ->
+                    Nothing
       }
     , send SendWebsocketConnect
     )
@@ -44,6 +50,9 @@ update msg model =
 
         SendWebsocketConnect ->
             ( model, sendWebsocketConnect () )
+
+        SendWebsocketReconnect sessionId ->
+            ( model, sendEvent (E.object [ ( "type", E.string "reconnect" ), ( "session_id", E.string sessionId ) ]) )
 
         SendWebsocketDisconnect ->
             ( model, Cmd.batch [ removeSessionId (), sendWebsocketDisconnect () ] )
@@ -80,7 +89,12 @@ update msg model =
             in
             ( newModel
             , if decodeWebsocketConnectionState state == Connected then
-                send NoOp
+                case connectAction of
+                    Reconnect sessionId ->
+                        send (SendWebsocketReconnect sessionId)
+
+                    _ ->
+                        send NoOp
 
               else
                 Cmd.none
@@ -138,7 +152,7 @@ update msg model =
             ( { model | username = username }, Cmd.none )
 
         SetClient client ->
-            ( { model | client = Just client }, Cmd.none )
+            ( { model | client = Just client }, storeSessionId (E.string client.sessionId) )
 
         SendLogin username ->
             case model.client of
@@ -199,6 +213,9 @@ port sendVote : E.Value -> Cmd msg
 port sendWebsocketConnect : () -> Cmd msg
 
 
+port sendEvent : E.Value -> Cmd msg
+
+
 port sendWebsocketDisconnect : () -> Cmd msg
 
 
@@ -206,6 +223,9 @@ port receiveWebsocketStatus : (E.Value -> msg) -> Sub msg
 
 
 port receiveWebSocketMessage : (E.Value -> msg) -> Sub msg
+
+
+port storeSessionId : E.Value -> Cmd msg
 
 
 port removeSessionId : () -> Cmd msg

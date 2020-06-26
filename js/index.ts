@@ -3,7 +3,9 @@ import { connect, disconnect, send } from "./websocket";
 
 const app = Elm.Main.init({
     node: document.getElementById("app"),
-    flags: {},
+    flags: {
+      sessionId: sessionStorage.getItem("sessionid"),
+    },
 });
 
 app.ports.sendVote.subscribe((vote: PublicVote | AnonVote) => {
@@ -28,6 +30,12 @@ app.ports.sendWebsocketDisconnect.subscribe(() => {
   app.ports.receiveWebsocketStatus.send("disconnecting");
   disconnect(() => app.ports.receiveWebsocketStatus.send("disconnected"));
 });
+
+app.ports.sendEvent.subscribe((obj: Object) => send(obj));
+
+app.ports.storeSessionId.subscribe((sessionId: string) =>
+  sessionStorage.setItem("sessionid", sessionId)
+);
 
 app.ports.removeSessionId.subscribe(() =>
   sessionStorage.removeItem("sessionid")

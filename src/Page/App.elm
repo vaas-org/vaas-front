@@ -1,9 +1,12 @@
 module Page.App exposing (view)
 
-import Html exposing (Html, div, h1, header, span, text)
+import Html exposing (Html, button, div, h1, header, span, text)
 import Html.Attributes exposing (style)
+import Html.Events exposing (onClick)
 import Model exposing (Client, ConnectionStatus(..), Model, Msg(..))
 import Page.Common exposing (connectionBullet)
+import Page.Error
+import Page.Loading
 import Page.Portal
 import Page.Vote exposing (issueContainer)
 
@@ -36,18 +39,32 @@ view model =
         , style "grid-template-columns" "1fr 80% 1fr"
         ]
         [ banner
-        , if model.websocketConnection == Model.Connected then
-            case model.client of
-                Just _ ->
-                    body model
+        , case model.websocketConnection of
+            Connected ->
+                case model.client of
+                    Just _ ->
+                        body model
 
-                Nothing ->
-                    -- loading page mby
-                    Page.Portal.view model.username
+                    Nothing ->
+                        Page.Portal.view model.username
 
-          else
-            -- we should technically show an error here
-            Page.Portal.view model.username
+            Reconnect _ ->
+                Page.Loading.view
+
+            Connecting ->
+                Page.Loading.view
+
+            Disconnected ->
+                Page.Error.view
+
+            NotConnectedYet ->
+                Page.Portal.view model.username
+
+            _ ->
+                Page.Error.view
+
+        -- we should technically show an error here
+        -- Page.Loading.view
         , footer model.websocketConnection model.client
         ]
 

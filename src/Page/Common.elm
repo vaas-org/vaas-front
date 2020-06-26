@@ -80,5 +80,8 @@ connectionStatusStr status =
         Disconnected ->
             "Disconnected"
 
+        Reconnect _ ->
+            "Reconnecting"
+
         Errored e ->
             "Connection error: " ++ e

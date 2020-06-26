@@ -46,10 +46,39 @@ update msg model =
             ( model, sendWebsocketConnect () )
 
         SendWebsocketDisconnect ->
-            ( model, sendWebsocketDisconnect () )
+            ( model, Cmd.batch [ removeSessionId (), sendWebsocketDisconnect () ] )
 
         ReceiveWebsocketConnectionState state ->
-            ( { model | websocketConnection = decodeWebsocketConnectionState state }
+            let
+                connectAction =
+                    model.websocketConnection
+
+                decodedState =
+                    decodeWebsocketConnectionState state
+
+                -- If the previous state was "Disconnecting", and the current state is "Disconnected",
+                -- we overwrite the current state to be "NotConnectedYet" instead. This is the inital
+                -- state of the app, so we basically reset to start.
+                -- If we receive a "Disconnected" state _without_ having been "Disconnecting", that means
+                -- we're experiencing interruptions.
+                newState =
+                    if decodedState == Disconnected && connectAction == Disconnecting then
+                        NotConnectedYet
+
+                    else
+                        decodedState
+
+                client =
+                    if decodedState == Disconnected && connectAction == Disconnecting then
+                        Nothing
+
+                    else
+                        model.client
+
+                newModel =
+                    { model | websocketConnection = newState, client = client }
+            in
+            ( newModel
             , if decodeWebsocketConnectionState state == Connected then
                 send NoOp
 
@@ -177,6 +206,9 @@ port receiveWebsocketStatus : (E.Value -> msg) -> Sub msg
 
 
 port receiveWebSocketMessage : (E.Value -> msg) -> Sub msg
+
+
+port removeSessionId : () -> Cmd msg
 
 
 decodeWebsocketConnectionState : E.Value -> ConnectionStatus

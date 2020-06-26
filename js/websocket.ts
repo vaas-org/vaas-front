@@ -10,7 +10,7 @@ export function connect(
   onConnect: () => void,
   onDisconnect: () => void
 ) {
-  disconnect();
+  disconnect(() => ({}));
   var wsUri =
     ((websocketServer.substr(0, 6) == "https:" && "wss://") || "ws://") +
     websocketServer.split("://")[1] +
@@ -33,11 +33,13 @@ export function connect(
     onDisconnect();
   };
 }
-export function disconnect() {
+export function disconnect(onClosed: () => void) {
   if (conn != null) {
     log("Disconnecting...");
+    conn.onclose = null;
     conn.close();
     conn = null;
+    onClosed();
   }
 }
 

@@ -25,9 +25,13 @@ app.ports.sendWebsocketConnect.subscribe(() => {
 });
 
 app.ports.sendWebsocketDisconnect.subscribe(() => {
-    app.ports.receiveWebsocketStatus.send("disconnecting");
-    disconnect();
+  app.ports.receiveWebsocketStatus.send("disconnecting");
+  disconnect(() => app.ports.receiveWebsocketStatus.send("disconnected"));
 });
+
+app.ports.removeSessionId.subscribe(() =>
+  sessionStorage.removeItem("sessionid")
+);
 
 interface Login {
     userId: string;

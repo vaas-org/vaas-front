@@ -64,7 +64,7 @@ banner =
         ]
 
 
-footer : ConnectionStatus -> Maybe Client -> Html msg
+footer : ConnectionStatus -> Maybe Client -> Html Msg
 footer connection client =
     div
         [ style "grid-column" "2"
@@ -84,4 +84,10 @@ footer connection client =
                 Nothing ->
                     text ""
             ]
+        , case client of
+            Just _ ->
+                button [ onClick SendWebsocketDisconnect ] [ text "Logout 🚨" ]
+
+            Nothing ->
+                div [] []
         ]

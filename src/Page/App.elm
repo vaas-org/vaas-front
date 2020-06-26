@@ -1,9 +1,9 @@
 module Page.App exposing (view)
 
-import Html exposing (Html, button, div, h1, header, input, label, span, text)
-import Html.Attributes exposing (for, style, value)
-import Html.Events exposing (onClick, onInput)
+import Html exposing (Html, div, h1, header, span, text)
+import Html.Attributes exposing (style)
 import Model exposing (Client, ConnectionStatus(..), Model, Msg(..))
+import Page.Common exposing (connectionBullet)
 import Page.Portal
 import Page.Vote exposing (issueContainer)
 
@@ -71,43 +71,17 @@ footer connection client =
         , style "margin" "auto auto .25rem"
         ]
         [ span []
-            [ case connection of
-                Connected ->
-                    case client of
-                        Just c ->
-                            case c.username of
-                                Just username ->
-                                    text ("Connected as " ++ username ++ "(" ++ c.sessionId ++ ")")
-
-                                Nothing ->
-                                    text ("Connected (" ++ c.sessionId ++ ")")
+            [ connectionBullet connection
+            , case client of
+                Just c ->
+                    case c.username of
+                        Just username ->
+                            text (username ++ "(" ++ c.sessionId ++ ")")
 
                         Nothing ->
-                            text "Connected"
+                            text ("(" ++ c.sessionId ++ ")")
 
-                _ ->
-                    text (connectionStatusStr connection)
+                Nothing ->
+                    text ""
             ]
         ]
-
-
-connectionStatusStr : ConnectionStatus -> String
-connectionStatusStr status =
-    case status of
-        NotConnectedYet ->
-            "Not yet connected"
-
-        Connected ->
-            "Connected"
-
-        Connecting ->
-            "Connecting"
-
-        Disconnecting ->
-            "Disconnecting"
-
-        Disconnected ->
-            "Disconnected"
-
-        Errored e ->
-            "Connection error: " ++ e

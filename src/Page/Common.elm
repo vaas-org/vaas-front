@@ -1,7 +1,8 @@
-module Page.Common exposing (progressBar)
+module Page.Common exposing (connectionBullet, progressBar)
 
 import Html exposing (Html, div, label, progress, span, text)
-import Html.Attributes exposing (style, value)
+import Html.Attributes exposing (style, title, value)
+import Model exposing (ConnectionStatus(..))
 
 
 progressBar : String -> Float -> Float -> Html msg
@@ -28,3 +29,56 @@ progressBar title current maxValue =
             , span [ style "margin-left" "1rem" ] [ text pctTxt ]
             ]
         ]
+
+
+connectionBullet : ConnectionStatus -> Html msg
+connectionBullet status =
+    let
+        color =
+            case status of
+                Connected ->
+                    "#42a200"
+
+                NotConnectedYet ->
+                    "red"
+
+                Disconnected ->
+                    "red"
+
+                Connecting ->
+                    "orange"
+
+                _ ->
+                    "hotpink"
+    in
+    span
+        [ style "background-color" color
+        , style "height" "8px"
+        , style "width" "8px"
+        , style "border-radius" "4px"
+        , style "display" "inline-block"
+        , title (connectionStatusStr status)
+        ]
+        []
+
+
+connectionStatusStr : ConnectionStatus -> String
+connectionStatusStr status =
+    case status of
+        NotConnectedYet ->
+            "Not yet connected"
+
+        Connected ->
+            "Connected"
+
+        Connecting ->
+            "Connecting"
+
+        Disconnecting ->
+            "Disconnecting"
+
+        Disconnected ->
+            "Disconnected"
+
+        Errored e ->
+            "Connection error: " ++ e

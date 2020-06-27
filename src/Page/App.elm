@@ -52,7 +52,12 @@ view model =
                 Page.Loading.view
 
             Connecting ->
-                Page.Loading.view
+                case model.client of
+                    Just _ ->
+                        Page.Loading.view
+
+                    Nothing ->
+                        Page.Portal.view model.username
 
             NotConnectedYet ->
                 Page.Portal.view model.username

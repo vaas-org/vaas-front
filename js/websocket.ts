@@ -10,7 +10,12 @@ export function connect(
   onConnect: () => void,
   onDisconnect: () => void
 ) {
-  disconnect(() => ({}));
+  // Clean up existing connection if any
+  if (conn !== null) {
+    conn.onclose = null;
+    conn.close();
+    conn = null;
+  }
   var wsUri =
     ((websocketServer.substr(0, 6) == "https:" && "wss://") || "ws://") +
     websocketServer.split("://")[1] +
@@ -46,3 +51,9 @@ export function disconnect(onClosed: () => void) {
 export function send(obj: unknown) {
   conn.send(JSON.stringify(obj));
 }
+
+// Stop onClose actions from being called during a close
+window.onbeforeunload = () => {
+  conn.onclose = null;
+  conn.close();
+};

@@ -65,18 +65,6 @@ update msg model =
                 decodedState =
                     decodeWebsocketConnectionState state
 
-                -- If the previous state was "Disconnecting", and the current state is "Disconnected",
-                -- we overwrite the current state to be "NotConnectedYet" instead. This is the inital
-                -- state of the app, so we basically reset to start.
-                -- If we receive a "Disconnected" state _without_ having been "Disconnecting", that means
-                -- we're experiencing interruptions.
-                newState =
-                    if decodedState == Disconnected && connectAction == Disconnecting then
-                        NotConnectedYet
-
-                    else
-                        decodedState
-
                 client =
                     if decodedState == Disconnected && connectAction == Disconnecting then
                         Nothing
@@ -85,7 +73,7 @@ update msg model =
                         model.client
 
                 newModel =
-                    { model | websocketConnection = newState, client = client }
+                    { model | websocketConnection = decodedState, client = client }
             in
             ( newModel
             , if decodeWebsocketConnectionState state == Connected then

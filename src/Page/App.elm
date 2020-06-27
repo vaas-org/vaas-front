@@ -68,10 +68,10 @@ view model =
                         Page.Portal.view model.username
 
             Disconnected ->
-                Page.Error.view
+                Page.Error.view Nothing
 
-            Errored _ ->
-                Page.Error.view
+            Errored error ->
+                Page.Error.view (Just error)
 
             Disconnecting ->
                 Page.Loading.view

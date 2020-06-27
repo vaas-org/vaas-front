@@ -29,6 +29,7 @@ export function connect(
   conn.onopen = function () {
     log("Connected.");
     onConnect();
+    reconnectTimeout = 500;
   };
 
   conn.onmessage = onMessage;
@@ -36,6 +37,17 @@ export function connect(
     log("Disconnected.");
     conn = null;
     onDisconnect();
+
+    console.debug(`reconnecting in ${reconnectTimeout / 1000}s`);
+    setTimeout(() => {
+      console.info("Reconnecting WebSocket connection.");
+      connect(onMessage, onConnect, onDisconnect);
+
+      // Increase backoff until we reach 10s
+      if (reconnectTimeout < 10000) {
+        reconnectTimeout += reconnectTimeout * 1.2;
+      }
+    }, reconnectTimeout);
   };
 }
 export function disconnect(onClosed: () => void) {
@@ -57,3 +69,5 @@ window.onbeforeunload = () => {
   conn.onclose = null;
   conn.close();
 };
+
+let reconnectTimeout = 500;

@@ -60,7 +60,12 @@ view model =
                         Page.Portal.view model.username
 
             NotConnectedYet ->
-                Page.Portal.view model.username
+                case model.client of
+                    Just _ ->
+                        Page.Loading.view
+
+                    Nothing ->
+                        Page.Portal.view model.username
 
             Disconnected ->
                 Page.Error.view

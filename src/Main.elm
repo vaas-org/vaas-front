@@ -33,6 +33,7 @@ init flags =
 
                 Nothing ->
                     Nothing
+      , showAdminPage = False
       }
     , send SendWebsocketConnect
     )
@@ -155,6 +156,9 @@ update msg model =
                 Nothing ->
                     -- Connect first, and then send a new message about the login. I guess?
                     ( model, sendLogin (E.object [ ( "username", E.string username ) ]) )
+
+        ToggleAdminView ->
+            ( { model | showAdminPage = not model.showAdminPage }, Cmd.none )
 
 
 

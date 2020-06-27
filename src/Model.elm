@@ -95,6 +95,7 @@ type alias Model =
     , websocketConnection : ConnectionStatus
     , username : String
     , client : Maybe Client
+    , showAdminPage : Bool
     }
 
 
@@ -112,6 +113,7 @@ type Msg
     | SetUsername String
     | SetClient Client
     | SendLogin String
+    | ToggleAdminView
 
 
 type alias Flags =

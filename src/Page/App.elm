@@ -54,14 +54,17 @@ view model =
             Connecting ->
                 Page.Loading.view
 
-            Disconnected ->
-                Page.Error.view
-
             NotConnectedYet ->
                 Page.Portal.view model.username
 
-            _ ->
+            Disconnected ->
                 Page.Error.view
+
+            Errored _ ->
+                Page.Error.view
+
+            Disconnecting ->
+                Page.Loading.view
 
         -- we should technically show an error here
         -- Page.Loading.view

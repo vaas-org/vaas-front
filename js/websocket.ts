@@ -5,29 +5,41 @@ function log(msg: string) {
 }
 
 let conn: WebSocket | null = null;
-export function connect(onMessage: (this: WebSocket, ev: MessageEvent) => void) {
-  disconnect();
+export function connect(
+  onMessage: (this: WebSocket, ev: MessageEvent) => void,
+  onConnect: () => void,
+  onDisconnect: () => void
+) {
+  disconnect(() => ({}));
   var wsUri =
     ((websocketServer.substr(0, 6) == "https:" && "wss://") || "ws://") +
     websocketServer.split("://")[1] +
     "/ws/";
+
   console.log("URI", wsUri);
+
   conn = new WebSocket(wsUri);
+
   log("Connecting...");
-  conn.onopen = function() {
+  conn.onopen = function () {
     log("Connected.");
+    onConnect();
   };
+
   conn.onmessage = onMessage;
-  conn.onclose = function() {
+  conn.onclose = function () {
     log("Disconnected.");
     conn = null;
+    onDisconnect();
   };
 }
-export function disconnect() {
+export function disconnect(onClosed: () => void) {
   if (conn != null) {
     log("Disconnecting...");
+    conn.onclose = null;
     conn.close();
     conn = null;
+    onClosed();
   }
 }
 

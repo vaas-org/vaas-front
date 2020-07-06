@@ -22,6 +22,7 @@ main =
 init : Flags -> ( Model, Cmd Msg )
 init flags =
     ( { activeIssue = dummyIssue
+      , newIssue = Nothing
       , selectedAlternative = Nothing
       , sendVoteStatus = NotSent
       , websocketConnection = NotConnectedYet
@@ -159,6 +160,9 @@ update msg model =
 
         ToggleAdminView ->
             ( { model | showAdminPage = not model.showAdminPage }, Cmd.none )
+
+        UpdateIssue issue ->
+            ( { model | newIssue = Just issue }, Cmd.none )
 
 
 

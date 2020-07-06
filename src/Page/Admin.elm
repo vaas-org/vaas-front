@@ -1,7 +1,8 @@
 module Page.Admin exposing (view)
 
-import Html exposing (Html, div, h2, text)
-import Model exposing (Model, Msg)
+import Html exposing (Html, button, div, h2, text)
+import Html.Events exposing (onClick)
+import Model exposing (Model, Msg, dummyIssue)
 import Page.CreateIssue
 
 
@@ -9,5 +10,10 @@ view : Model -> Html Msg
 view model =
     div []
         [ h2 [] [ text "Admin page" ]
-        , Page.CreateIssue.view model.activeIssue
+        , case model.newIssue of
+            Just issue ->
+                Page.CreateIssue.view issue
+
+            Nothing ->
+                button [ onClick (Model.UpdateIssue dummyIssue) ] [ text "Create new issue" ]
         ]

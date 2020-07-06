@@ -90,6 +90,7 @@ type ConnectionStatus
 
 type alias Model =
     { activeIssue : Issue
+    , newIssue : Maybe Issue
     , selectedAlternative : Maybe Alternative
     , sendVoteStatus : EventStatus
     , websocketConnection : ConnectionStatus
@@ -114,6 +115,7 @@ type Msg
     | SetClient Client
     | SendLogin String
     | ToggleAdminView
+    | UpdateIssue Issue
 
 
 type alias Flags =

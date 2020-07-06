@@ -81,6 +81,11 @@ update msg model =
                     Reconnect sessionId ->
                         send (SendWebsocketReconnect sessionId)
 
+                    Connecting ->
+                        case Maybe.map (\c -> c.sessionId) client of
+                            Just sessionId -> send (SendWebsocketReconnect sessionId)
+                            Nothing -> send NoOp
+
                     _ ->
                         send NoOp
 

@@ -10,7 +10,7 @@ const app = Elm.Main.init({
 
 app.ports.sendVote.subscribe((vote: PublicVote | AnonVote) => {
   console.log("sendVote from elm: ", vote);
-  send({ ...vote, user_id: vote.user_id, type: "vote" });
+  send({ ...vote, type: "vote" });
 });
 
 app.ports.sendLogin.subscribe((login: Login) => {
@@ -76,6 +76,9 @@ function sendMessageToElm(issue: unknown) {
   app.ports.receiveWebSocketMessage.send(issue);
 }
 
+// MEGA HACK
+let issue: Issue | null;
+
 function connectToWebsocket(onConnect: () => void, onDisconnect: () => void) {
   connect(
     (data: { data: string }) => {
@@ -85,11 +88,16 @@ function connectToWebsocket(onConnect: () => void, onDisconnect: () => void) {
       console.log("raw data", data);
       console.table(message);
       console.groupEnd();
+      if (message.type === 'issue') {
+        // BEGIN MEGA HACK
+        issue = message;
+        startDummyVotes();
+        // END MEGA HACK
+      }
       sendMessageToElm(message);
     },
     () => {
       onConnect();
-      startDummyVotes();
     },
     onDisconnect
   );
@@ -98,9 +106,12 @@ function connectToWebsocket(onConnect: () => void, onDisconnect: () => void) {
 function startDummyVotes() {
   let sendVoteCounter = 0;
   const sendVoteInterval = setInterval(() => {
+    const alternative_index = Math.floor((Math.random() * issue.alternatives.length));
+    const alternative = issue.alternatives[alternative_index];
+    console.log('hack', alternative_index, alternative);
     const v = {
-      user_id: btoa(`${Math.random() * 10000}`),
-      alternative_id: `${Math.max(1, Math.round((Math.random() * 10) / 3))}`,
+      user_id: uuidv4(),
+      alternative_id: alternative.id,
       type: "vote",
     };
     console.debug("Sending vote", v);
@@ -111,4 +122,10 @@ function startDummyVotes() {
       clearInterval(sendVoteInterval);
     }
   }, 3000);
+}
+function uuidv4() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
 }

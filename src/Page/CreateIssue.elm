@@ -1,4 +1,4 @@
-module Page.CreateIssue exposing (update, view)
+module Page.CreateIssue exposing (view)
 
 import Html exposing (Html, button, div, input, label, li, text, ul)
 import Html.Attributes exposing (style, value)

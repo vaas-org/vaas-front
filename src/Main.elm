@@ -161,6 +161,31 @@ update msg model =
         ToggleAdminView ->
             ( { model | showAdminPage = not model.showAdminPage }, Cmd.none )
 
+        CreateIssue issue ->
+            ( model
+            , sendEvent
+                (E.object
+                    [ ( "type", E.string "issue_create" )
+                    , ( "issue"
+                      , E.object
+                            [ ( "title", E.string issue.title )
+                            , ( "description", E.string issue.description )
+                            , ( "alternatives"
+                              , E.list
+                                    (\a ->
+                                        E.object
+                                            [ ( "title", E.string a.title )
+                                            ]
+                                    )
+                                    issue.alternatives
+                              )
+                            , ( "show_distribution", E.bool True )
+                            ]
+                      )
+                    ]
+                )
+            )
+
         UpdateIssue issue ->
             ( { model | newIssue = Just issue }, Cmd.none )
 

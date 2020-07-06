@@ -123,6 +123,7 @@ type Msg
     | SetClient Client
     | SendLogin String
     | ToggleAdminView
+    | CreateIssue Issue
     | UpdateIssue Issue
 
 

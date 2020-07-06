@@ -15,7 +15,7 @@ view issue =
             , formField "Alternatives" (update issue AddAlternative) ""
             , ul [] (List.map (\a -> li [ style "display" "flex" ] [ formField ("Alternative" ++ a.id) (update issue (UpdateAlternative a.id)) a.title, button [ onClick (update issue RemoveAlternative a.id) ] [ text "❌" ] ]) issue.alternatives)
             ]
-        , div [] [ button [ onClick NoOp ] [ text "Create issue" ] ]
+        , div [] [ button [ onClick (CreateIssue issue) ] [ text "Create issue" ] ]
         ]
 
 

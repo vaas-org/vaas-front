@@ -22,6 +22,7 @@ main =
 init : Flags -> ( Model, Cmd Msg )
 init flags =
     ( { activeIssue = dummyIssue
+      , newIssue = Nothing
       , selectedAlternative = Nothing
       , sendVoteStatus = NotSent
       , websocketConnection = NotConnectedYet
@@ -33,6 +34,7 @@ init flags =
 
                 Nothing ->
                     Nothing
+      , showAdminPage = False
       }
     , send SendWebsocketConnect
     )
@@ -155,6 +157,37 @@ update msg model =
                 Nothing ->
                     -- Connect first, and then send a new message about the login. I guess?
                     ( model, sendLogin (E.object [ ( "username", E.string username ) ]) )
+
+        ToggleAdminView ->
+            ( { model | showAdminPage = not model.showAdminPage }, Cmd.none )
+
+        CreateIssue issue ->
+            ( model
+            , sendEvent
+                (E.object
+                    [ ( "type", E.string "issue_create" )
+                    , ( "issue"
+                      , E.object
+                            [ ( "title", E.string issue.title )
+                            , ( "description", E.string issue.description )
+                            , ( "alternatives"
+                              , E.list
+                                    (\a ->
+                                        E.object
+                                            [ ( "title", E.string a.title )
+                                            ]
+                                    )
+                                    issue.alternatives
+                              )
+                            , ( "show_distribution", E.bool True )
+                            ]
+                      )
+                    ]
+                )
+            )
+
+        UpdateIssue issue ->
+            ( { model | newIssue = Just issue }, Cmd.none )
 
 
 

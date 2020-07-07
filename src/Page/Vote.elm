@@ -1,6 +1,6 @@
 module Page.Vote exposing (issueContainer)
 
-import Html exposing (Html, div, form, h2, h3, input, label, li, p, text, ul)
+import Html exposing (Html, div, form, h2, h3, h4, input, label, li, p, span, text, ul)
 import Html.Attributes exposing (name, style, type_)
 import Html.Events exposing (onClick)
 import Model exposing (Alternative, ConnectionStatus(..), EventStatus(..), Issue, IssueState(..), Model, Msg(..), UUID, Vote)
@@ -23,17 +23,6 @@ issueContainer model =
 issueView : Issue -> Maybe Alternative -> Bool -> Html Msg
 issueView issue maybeSelectedAlternative disableSubmit =
     let
-        issueState =
-            case issue.state of
-                NotStarted ->
-                    "Not Started"
-
-                InProgress ->
-                    "In Progress"
-
-                Finished ->
-                    "Finished"
-
         selectedAlternative =
             case maybeSelectedAlternative of
                 Just a ->
@@ -53,7 +42,7 @@ issueView issue maybeSelectedAlternative disableSubmit =
         , style "flex" "1 1 35rem"
         ]
         [ div []
-            [ h2 [] [ text (issue.title ++ "(" ++ issueState ++ ")") ]
+            [ h2 [] [ text issue.title ]
             , p [] [ text issue.description ]
             ]
         , form
@@ -131,6 +120,17 @@ getVotesForAlternative alternativeId votes =
 issueProgress : Int -> Issue -> Html msg
 issueProgress voters issue =
     let
+        voteStatus =
+            case issue.state of
+                NotStarted ->
+                    "Not Started"
+
+                InProgress ->
+                    "In Progress"
+
+                Finished ->
+                    "Finished"
+
         votes =
             if issue.showDistribution then
                 List.map
@@ -158,6 +158,12 @@ issueProgress voters issue =
         ]
         [ div []
             [ h3 [] [ text "Status" ]
+            , h4 []
+                [ span []
+                    [ span [] [ text "Voting - " ]
+                    , span [ style "font-style" "italic" ] [ text voteStatus ]
+                    ]
+                ]
             , progressBar "Total" (Basics.toFloat (List.length issue.votes)) (Basics.toFloat voters)
             , if issue.showDistribution then
                 div [] (List.map (\a -> progressBar a.title (Basics.toFloat (getVotesForAlternative a.id votes)) (Basics.toFloat (List.length votes))) issue.alternatives)

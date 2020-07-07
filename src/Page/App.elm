@@ -4,11 +4,19 @@ import Html exposing (Html, button, div, h1, header, span, text)
 import Html.Attributes exposing (style)
 import Html.Events exposing (onClick)
 import Model exposing (Client, ConnectionStatus(..), Model, Msg(..))
+import Page.Admin
 import Page.Common exposing (connectionBullet)
 import Page.Error
 import Page.Loading
 import Page.Portal
 import Page.Vote exposing (issueContainer)
+
+
+adminToggle : Html Msg
+adminToggle =
+    div [ style "display" "inline-block" ]
+        [ button [ style "display" "inline-block", onClick ToggleAdminView ] [ text "🔧" ]
+        ]
 
 
 body : Model -> Html Msg
@@ -17,7 +25,10 @@ body model =
         [ style "grid-column" "2"
         , style "margin-top" "3rem"
         ]
-        [ if model.activeIssue.id /= "" then
+        [ if model.showAdminPage then
+            Page.Admin.view model
+
+          else if model.activeIssue.id /= "" then
             issueContainer model
 
           else
@@ -27,6 +38,20 @@ body model =
 
 view : Model -> Html Msg
 view model =
+    let
+        isAdmin =
+            case model.client of
+                Just client ->
+                    case client.username of
+                        Just username ->
+                            username == "admin"
+
+                        Nothing ->
+                            False
+
+                Nothing ->
+                    False
+    in
     div
         [ style "display" "grid"
         , style "height" "100vh"
@@ -38,7 +63,7 @@ view model =
         -- @ToDo: if wide screen add some more padding
         , style "grid-template-columns" "1fr 80% 1fr"
         ]
-        [ banner
+        [ banner isAdmin
         , case model.websocketConnection of
             Connected ->
                 case model.client of
@@ -82,14 +107,21 @@ view model =
         ]
 
 
-banner : Html msg
-banner =
+banner : Bool -> Html Msg
+banner showAdminToggle =
     header
         [ style "grid-column" "span 3"
         , style "margin" "0 1.5rem"
         ]
         [ div [ style "display" "flex", style "align-items" "center", style "justify-content" "space-between" ]
-            [ h1 [] [ text "VaaS" ]
+            [ h1 []
+                [ span [] [ text "VaaS" ]
+                , if showAdminToggle then
+                    adminToggle
+
+                  else
+                    span [] []
+                ]
             ]
         ]
 

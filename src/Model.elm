@@ -1,4 +1,4 @@
-module Model exposing (Alternative, Client, ConnectionStatus(..), EventStatus(..), Flags, Issue, IssueState(..), Meeting, Model, Msg(..), UUID, User, Vote(..), WebSocketMessage(..), dummyIssue)
+module Model exposing (Alternative, Client, ConnectionStatus(..), EventStatus(..), Flags, Issue, IssueField(..), IssueState(..), Meeting, Model, Msg(..), UUID, User, Vote(..), WebSocketMessage(..), dummyIssue)
 
 import Json.Encode as E
 
@@ -90,12 +90,22 @@ type ConnectionStatus
 
 type alias Model =
     { activeIssue : Issue
+    , newIssue : Maybe Issue
     , selectedAlternative : Maybe Alternative
     , sendVoteStatus : EventStatus
     , websocketConnection : ConnectionStatus
     , username : String
     , client : Maybe Client
+    , showAdminPage : Bool
     }
+
+
+type IssueField
+    = Title
+    | Description
+    | AddAlternative
+    | RemoveAlternative
+    | UpdateAlternative String
 
 
 type Msg
@@ -112,6 +122,9 @@ type Msg
     | SetUsername String
     | SetClient Client
     | SendLogin String
+    | ToggleAdminView
+    | CreateIssue Issue
+    | UpdateIssue Issue
 
 
 type alias Flags =

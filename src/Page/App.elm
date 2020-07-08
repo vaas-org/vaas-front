@@ -55,13 +55,8 @@ view model =
     div
         [ style "display" "grid"
         , style "height" "100vh"
-        , style "margin" "0 auto"
         , style "grid-template-rows" "4rem auto 4rem"
-        , style "max-width" "1200px"
-        , style "margin" "0 auto"
-
-        -- @ToDo: if wide screen add some more padding
-        , style "grid-template-columns" "1fr 80% 1fr"
+        , style "grid-template-columns" "1fr min(80%, 1200px) 1fr"
         ]
         [ banner isAdmin
         , case model.websocketConnection of
@@ -111,10 +106,19 @@ banner : Bool -> Html Msg
 banner showAdminToggle =
     header
         [ style "grid-column" "span 3"
-        , style "margin" "0 1.5rem"
+        , style "margin" "0"
+        , style "border-bottom-left-radius" "10px"
+        , style "border-bottom-right-radius" "10px"
         ]
-        [ div [ style "display" "flex", style "align-items" "center", style "justify-content" "space-between" ]
-            [ h1 []
+        [ div
+            [ style "display" "flex"
+            , style "align-items" "center"
+            , style "justify-content" "space-between"
+            , style "height" "100%"
+            ]
+            [ h1
+                [ style "margin-left" "1rem"
+                ]
                 [ span [] [ text "VaaS" ]
                 , if showAdminToggle then
                     adminToggle

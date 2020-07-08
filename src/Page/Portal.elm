@@ -8,7 +8,7 @@ import Model exposing (Msg(..))
 
 view : String -> Html Msg
 view username =
-    div []
+    div [ style "grid-column" "2" ]
         [ h2 [] [ text "Portal" ]
         , div []
             [ label [ for "username" ] [ text "Username: " ]

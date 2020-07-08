@@ -8,7 +8,7 @@ import Model exposing (Msg(..))
 
 view : Maybe String -> Html Msg
 view error =
-    div [ style "grid-column-start" "2" ]
+    div [ style "grid-column" "2" ]
         [ div [] [ button [ onClick SendWebsocketConnect ] [ text "Reconnect" ] ]
         , case error of
             Just msg ->

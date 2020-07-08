@@ -54,6 +54,7 @@ view model =
     in
     div
         [ style "display" "grid"
+        , style "background-color" "#f5f5f5"
         , style "height" "100vh"
         , style "grid-template-rows" "4rem auto 4rem"
         , style "grid-template-columns" "1fr min(80%, 1200px) 1fr"
@@ -107,6 +108,7 @@ banner showAdminToggle =
     header
         [ style "grid-column" "span 3"
         , style "margin" "0"
+        , style "background-color" "rgb(138, 58, 255)"
         , style "border-bottom-left-radius" "10px"
         , style "border-bottom-right-radius" "10px"
         ]
@@ -118,6 +120,7 @@ banner showAdminToggle =
             ]
             [ h1
                 [ style "margin-left" "1rem"
+                , style "color" "#f5f5f5"
                 ]
                 [ span [] [ text "VaaS" ]
                 , if showAdminToggle then

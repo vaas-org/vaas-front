@@ -3,7 +3,7 @@ module Page.App exposing (view)
 import Html exposing (Html, button, div, h1, header, span, text)
 import Html.Attributes exposing (style)
 import Html.Events exposing (onClick)
-import Model exposing (Client, ConnectionStatus(..), Model, Msg(..))
+import Model exposing (Client, ConnectionStatus(..), Model, Msg(..), Page(..))
 import Page.Admin
 import Page.Common exposing (connectionBullet)
 import Page.Error
@@ -12,11 +12,25 @@ import Page.Portal
 import Page.Vote exposing (issueContainer)
 
 
-adminToggle : Html Msg
-adminToggle =
+menuitems : Bool -> Maybe Client -> Html Msg
+menuitems isAdmin client =
+    let
+        items =
+            [ { icon = "🔧", cmd = RenderPage Config, show = True }
+            , { icon = "👨\u{200D}🚒", cmd = RenderPage Admin, show = isAdmin }
+            , { icon = "🚨", cmd = SendWebsocketConnect, show = client /= Nothing }
+            ]
+    in
     div [ style "display" "inline-block" ]
-        [ button [ style "display" "inline-block", onClick ToggleAdminView ] [ text "🔧" ]
-        ]
+        (items
+            |> List.filter (\item -> item.show)
+            |> List.map
+                (\item ->
+                    button
+                        [ style "display" "inline-block", onClick item.cmd ]
+                        [ text item.icon ]
+                )
+        )
 
 
 body : Model -> Html Msg
@@ -25,14 +39,15 @@ body model =
         [ style "grid-column" "2"
         , style "margin-top" "3rem"
         ]
-        [ if model.showAdminPage then
-            Page.Admin.view model
+        [ case model.page of
+            App ->
+                issueContainer model
 
-          else if model.activeIssue.id /= "" then
-            issueContainer model
+            Admin ->
+                Page.Admin.view model
 
-          else
-            div [] [ text "no active issue" ]
+            Config ->
+                div [] [ text "config" ]
         ]
 
 
@@ -105,7 +120,7 @@ view model =
 
 
 banner : Bool -> Maybe Client -> Html Msg
-banner showAdminToggle client =
+banner isAdmin client =
     header
         [ style "grid-column" "span 3"
         , style "margin" "0"
@@ -123,18 +138,8 @@ banner showAdminToggle client =
                 [ style "margin-left" "1rem"
                 , style "color" "#f5f5f5"
                 ]
-                [ span [] [ text "VaaS" ]
-                , if showAdminToggle then
-                    adminToggle
-
-                  else
-                    span [] []
-                , case client of
-                    Just _ ->
-                        button [ onClick SendWebsocketDisconnect ] [ text "Logout 🚨" ]
-
-                    Nothing ->
-                        div [] []
+                [ span [ onClick (RenderPage App) ] [ text "VaaS" ]
+                , menuitems isAdmin client
                 ]
             ]
         ]

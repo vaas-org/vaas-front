@@ -4,7 +4,7 @@ import Browser
 import Decoder exposing (decodeWebSocketMessage)
 import Json.Decode as D
 import Json.Encode as E
-import Model exposing (ConnectionStatus(..), EventStatus(..), Flags, IssueState(..), Model, Msg(..), WebSocketMessage(..), dummyIssue)
+import Model exposing (ConnectionStatus(..), EventStatus(..), Flags, IssueState(..), Model, Msg(..), Page(..), WebSocketMessage(..), dummyIssue)
 import Page.App exposing (view)
 import Task
 
@@ -34,7 +34,7 @@ init flags =
 
                 Nothing ->
                     Nothing
-      , showAdminPage = False
+      , page = App
       }
     , send SendWebsocketConnect
     )
@@ -158,8 +158,8 @@ update msg model =
                     -- Connect first, and then send a new message about the login. I guess?
                     ( model, sendLogin (E.object [ ( "username", E.string username ) ]) )
 
-        ToggleAdminView ->
-            ( { model | showAdminPage = not model.showAdminPage }, Cmd.none )
+        RenderPage page ->
+            ( { model | page = page }, Cmd.none )
 
         CreateIssue issue ->
             ( model

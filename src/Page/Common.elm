@@ -9,7 +9,11 @@ progressBar : String -> Float -> Float -> Html msg
 progressBar title current maxValue =
     let
         pct =
-            (current / maxValue) * 100
+            if maxValue == 0.0 then
+                0.0
+
+            else
+                (current / maxValue) * 100
 
         pctTxt =
             String.fromInt (Basics.round pct) ++ "%"

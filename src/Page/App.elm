@@ -55,7 +55,8 @@ view model =
     div
         [ style "display" "grid"
         , style "background-color" "#f5f5f5"
-        , style "height" "100vh"
+        , style "height" "100%"
+        , style "min-height" "100vh"
         , style "grid-template-rows" "4rem auto 4rem"
         , style "grid-template-columns" "1fr min(80%, 1200px) 1fr"
         ]

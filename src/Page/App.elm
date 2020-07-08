@@ -59,7 +59,7 @@ view model =
         , style "grid-template-rows" "4rem auto 4rem"
         , style "grid-template-columns" "1fr min(80%, 1200px) 1fr"
         ]
-        [ banner isAdmin
+        [ banner isAdmin model.client
         , case model.websocketConnection of
             Connected ->
                 case model.client of
@@ -103,8 +103,8 @@ view model =
         ]
 
 
-banner : Bool -> Html Msg
-banner showAdminToggle =
+banner : Bool -> Maybe Client -> Html Msg
+banner showAdminToggle client =
     header
         [ style "grid-column" "span 3"
         , style "margin" "0"
@@ -128,6 +128,12 @@ banner showAdminToggle =
 
                   else
                     span [] []
+                , case client of
+                    Just _ ->
+                        button [ onClick SendWebsocketDisconnect ] [ text "Logout 🚨" ]
+
+                    Nothing ->
+                        div [] []
                 ]
             ]
         ]
@@ -142,10 +148,4 @@ footer connection client =
         [ span []
             [ connectionBullet connection client
             ]
-        , case client of
-            Just _ ->
-                button [ onClick SendWebsocketDisconnect ] [ text "Logout 🚨" ]
-
-            Nothing ->
-                div [] []
         ]

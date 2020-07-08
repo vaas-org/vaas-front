@@ -4,9 +4,10 @@ import Browser
 import Html exposing (Attribute, Html, a, button, div, h1, header, span, text)
 import Html.Attributes exposing (style)
 import Html.Events exposing (onClick)
-import Model exposing (Client, ConnectionStatus(..), Model, Msg(..))
+import Model exposing (Client, ConnectionStatus(..), Model, Msg(..), Theme(..))
 import Page.Admin
 import Page.Common exposing (connectionBullet)
+import Page.Config
 import Page.Error
 import Page.Loading
 import Page.Portal
@@ -70,7 +71,7 @@ body model =
                 Page.Admin.view model
 
             Just Route.Config ->
-                div [] [ text "config" ]
+                Page.Config.view model.config
 
             Just Route.Login ->
                 Page.Portal.view model.client model.username
@@ -86,6 +87,22 @@ body model =
 view : Model -> Browser.Document Msg
 view model =
     let
+        themeBgColor =
+            case model.config of
+                Light ->
+                    "#f5f5f5"
+
+                Dark ->
+                    "#1a1a1a"
+
+        themeTextColor =
+            case model.config of
+                Light ->
+                    "#1a1a1a"
+
+                Dark ->
+                    "#f5f5f5"
+
         isAdmin =
             case model.client of
                 Just client ->
@@ -103,7 +120,8 @@ view model =
     , body =
         [ div
             [ style "display" "grid"
-            , style "background-color" "#f5f5f5"
+            , style "background-color" themeBgColor
+            , style "color" themeTextColor
             , style "height" "100%"
             , style "min-height" "100vh"
             , style "grid-template-rows" "4rem auto 4rem"

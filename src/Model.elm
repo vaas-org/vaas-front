@@ -1,4 +1,4 @@
-module Model exposing (Alternative, Client, ConnectionStatus(..), EventStatus(..), Flags, Issue, IssueField(..), IssueState(..), Meeting, Model, Msg(..), UUID, User, Vote(..), WebSocketMessage(..), dummyIssue)
+module Model exposing (Alternative, Client, Config, ConnectionStatus(..), EventStatus(..), Flags, Issue, IssueField(..), IssueState(..), Meeting, Model, Msg(..), Theme(..), UUID, User, Vote(..), WebSocketMessage(..), dummyIssue)
 
 import Browser
 import Browser.Navigation as Nav
@@ -102,6 +102,7 @@ type alias Model =
     , client : Maybe Client
     , route : Maybe Route
     , key : Nav.Key
+    , config : Config
     }
 
 
@@ -126,11 +127,21 @@ type Msg
     | ReceiveWebsocketConnectionState E.Value
     | SetUsername String
     | SetClient Client
+    | SetConfig Config
     | SendLogin String
     | CreateIssue Issue
     | UpdateIssue Issue
     | UrlChanged Url
     | LinkClicked Browser.UrlRequest
+
+
+type Theme
+    = Light
+    | Dark
+
+
+type alias Config =
+    Theme
 
 
 type alias Flags =

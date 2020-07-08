@@ -140,18 +140,7 @@ footer connection client =
         , style "margin" "auto auto .25rem"
         ]
         [ span []
-            [ connectionBullet connection
-            , case client of
-                Just c ->
-                    case c.username of
-                        Just username ->
-                            text (username ++ "(" ++ c.sessionId ++ ")")
-
-                        Nothing ->
-                            text ("(" ++ c.sessionId ++ ")")
-
-                Nothing ->
-                    text ""
+            [ connectionBullet connection client
             ]
         , case client of
             Just _ ->

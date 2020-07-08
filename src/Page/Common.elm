@@ -2,7 +2,7 @@ module Page.Common exposing (connectionBullet, progressBar)
 
 import Html exposing (Html, div, label, progress, span, text)
 import Html.Attributes exposing (style, title, value)
-import Model exposing (ConnectionStatus(..))
+import Model exposing (Client, ConnectionStatus(..))
 
 
 progressBar : String -> Float -> Float -> Html msg
@@ -35,8 +35,8 @@ progressBar title current maxValue =
         ]
 
 
-connectionBullet : ConnectionStatus -> Html msg
-connectionBullet status =
+connectionBullet : ConnectionStatus -> Maybe Client -> Html msg
+connectionBullet status client =
     let
         color =
             case status of
@@ -54,6 +54,22 @@ connectionBullet status =
 
                 _ ->
                     "hotpink"
+
+        connectionStatus =
+            connectionStatusStr status
+
+        statusAndSessionId =
+            case client of
+                Just c ->
+                    case c.username of
+                        Just username ->
+                            connectionStatus ++ " as " ++ username ++ " (" ++ c.sessionId ++ ")"
+
+                        Nothing ->
+                            connectionStatus ++ " (" ++ c.sessionId ++ ")"
+
+                Nothing ->
+                    connectionStatus
     in
     span
         [ style "background-color" color
@@ -61,7 +77,7 @@ connectionBullet status =
         , style "width" "8px"
         , style "border-radius" "4px"
         , style "display" "inline-block"
-        , title (connectionStatusStr status)
+        , title statusAndSessionId
         ]
         []
 

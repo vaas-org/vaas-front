@@ -10,9 +10,9 @@ import Page.Common exposing (progressBar)
 issueContainer : Model -> Html Msg
 issueContainer model =
     div
-        [ style "display" "flex"
-        , style "justify-content" "space-between"
-        , style "flex-wrap" "wrap"
+        [ style "display" "grid"
+        , style "grid-template-columns" "repeat(auto-fit, minmax(15rem, 30rem))"
+        , style "grid-gap" "1rem"
         ]
         [ issueView model.activeIssue model.selectedAlternative (model.sendVoteStatus /= NotSent)
         , issueProgress model.activeIssue.maxVoters model.activeIssue
@@ -37,9 +37,7 @@ issueView issue maybeSelectedAlternative disableSubmit =
     div
         [ style "border" "1px solid #ddd"
         , style "border-radius" "4px"
-        , style "margin-bottom" "1rem"
         , style "padding" "0 1rem 1rem"
-        , style "flex" "1 1 35rem"
         ]
         [ div []
             [ h2 [] [ text issue.title ]
@@ -150,10 +148,8 @@ issueProgress voters issue =
                 []
     in
     div
-        [ style "flex" "1 1 12rem"
-        , style "border" "1px solid #ddd"
+        [ style "border" "1px solid #ddd"
         , style "border-radius" "4px"
-        , style "margin-bottom" "1rem"
         , style "padding" "0 1rem 1rem"
         ]
         [ div []
@@ -177,12 +173,10 @@ issueProgress voters issue =
 voteListContainer : List Vote -> Html msg
 voteListContainer votes =
     div
-        [ style "flex" "0 1 12rem"
+        [ style "min-width" "12rem"
         , style "border" "1px solid #ddd"
         , style "border-radius" "4px"
-        , style "margin-bottom" "1rem"
         , style "padding" "0 1rem 1rem"
-        , style "justify-self" "flex-end"
         ]
         [ h3 [] [ text "Votes" ]
         , voteList votes

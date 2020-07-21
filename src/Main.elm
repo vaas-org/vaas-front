@@ -1,26 +1,31 @@
 port module Main exposing (main)
 
 import Browser
+import Browser.Navigation as Nav
 import Decoder exposing (decodeWebSocketMessage)
 import Json.Decode as D
 import Json.Encode as E
-import Model exposing (ConnectionStatus(..), EventStatus(..), Flags, IssueState(..), Model, Msg(..), Page(..), WebSocketMessage(..), dummyIssue)
+import Model exposing (ConnectionStatus(..), EventStatus(..), Flags, IssueState(..), Model, Msg(..), WebSocketMessage(..), dummyIssue)
 import Page.App exposing (view)
+import Route
 import Task
+import Url exposing (Url)
 
 
 main : Program Flags Model Msg
 main =
-    Browser.element
+    Browser.application
         { init = init
         , view = view
         , update = update
         , subscriptions = subscriptions
+        , onUrlChange = UrlChanged
+        , onUrlRequest = LinkClicked
         }
 
 
-init : Flags -> ( Model, Cmd Msg )
-init flags =
+init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init flags url key =
     ( { activeIssue = dummyIssue
       , newIssue = Nothing
       , selectedAlternative = Nothing
@@ -34,7 +39,8 @@ init flags =
 
                 Nothing ->
                     Nothing
-      , page = App
+      , route = Route.fromUrl url
+      , key = key
       }
     , send SendWebsocketConnect
     )
@@ -85,8 +91,11 @@ update msg model =
 
                     Connecting ->
                         case Maybe.map (\c -> c.sessionId) client of
-                            Just sessionId -> send (SendWebsocketReconnect sessionId)
-                            Nothing -> send NoOp
+                            Just sessionId ->
+                                send (SendWebsocketReconnect sessionId)
+
+                            Nothing ->
+                                send NoOp
 
                     _ ->
                         send NoOp
@@ -158,9 +167,6 @@ update msg model =
                     -- Connect first, and then send a new message about the login. I guess?
                     ( model, sendLogin (E.object [ ( "username", E.string username ) ]) )
 
-        RenderPage page ->
-            ( { model | page = page }, Cmd.none )
-
         CreateIssue issue ->
             ( model
             , sendEvent
@@ -188,6 +194,17 @@ update msg model =
 
         UpdateIssue issue ->
             ( { model | newIssue = Just issue }, Cmd.none )
+
+        UrlChanged url ->
+            ( { model | route = Route.fromUrl url }, Cmd.none )
+
+        LinkClicked urlRequest ->
+            case urlRequest of
+                Browser.Internal url ->
+                    ( model, Nav.pushUrl model.key (Url.toString url) )
+
+                Browser.External href ->
+                    ( model, Nav.load href )
 
 
 

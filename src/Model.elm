@@ -1,6 +1,10 @@
-module Model exposing (Alternative, Client, ConnectionStatus(..), EventStatus(..), Flags, Issue, IssueField(..), IssueState(..), Meeting, Model, Msg(..), Page(..), UUID, User, Vote(..), WebSocketMessage(..), dummyIssue)
+module Model exposing (Alternative, Client, ConnectionStatus(..), EventStatus(..), Flags, Issue, IssueField(..), IssueState(..), Meeting, Model, Msg(..), UUID, User, Vote(..), WebSocketMessage(..), dummyIssue)
 
+import Browser
+import Browser.Navigation as Nav
 import Json.Encode as E
+import Route exposing (Route)
+import Url exposing (Url)
 
 
 type alias UUID =
@@ -96,7 +100,8 @@ type alias Model =
     , websocketConnection : ConnectionStatus
     , username : String
     , client : Maybe Client
-    , page : Page
+    , route : Maybe Route
+    , key : Nav.Key
     }
 
 
@@ -122,15 +127,10 @@ type Msg
     | SetUsername String
     | SetClient Client
     | SendLogin String
-    | RenderPage Page
     | CreateIssue Issue
     | UpdateIssue Issue
-
-
-type Page
-    = App
-    | Admin
-    | Config
+    | UrlChanged Url
+    | LinkClicked Browser.UrlRequest
 
 
 type alias Flags =

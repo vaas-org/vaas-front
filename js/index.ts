@@ -2,7 +2,6 @@ import { Elm } from "../src/Main.elm";
 import { connect, disconnect, send } from "./websocket";
 
 const app = Elm.Main.init({
-  node: document.getElementById("app"),
   flags: {
     sessionId: sessionStorage.getItem("sessionid"),
   },

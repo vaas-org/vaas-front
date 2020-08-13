@@ -5,7 +5,7 @@ import Browser.Navigation as Nav
 import Decoder exposing (decodeWebSocketMessage)
 import Json.Decode as D
 import Json.Encode as E
-import Model exposing (ConnectionStatus(..), EventStatus(..), Flags, IssueState(..), Model, Msg(..), WebSocketMessage(..), dummyIssue)
+import Model exposing (ConnectionStatus(..), EventStatus(..), Flags, IssueState(..), Model, Msg(..), Theme(..), WebSocketMessage(..), dummyIssue)
 import Page.App exposing (view)
 import Route
 import Task
@@ -41,6 +41,7 @@ init flags url key =
                     Nothing
       , route = Route.fromUrl url
       , key = key
+      , config = Light
       }
     , send SendWebsocketConnect
     )
@@ -205,6 +206,9 @@ update msg model =
 
                 Browser.External href ->
                     ( model, Nav.load href )
+
+        SetConfig config ->
+            ( { model | config = config }, Cmd.none )
 
 
 

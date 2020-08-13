@@ -9,6 +9,8 @@
     "parcel": "^1.12.4"
   },
   "scripts": {
+    "elm-format": "elm-format --validate src/",
+    "elm-format:fix": "elm-format --yes src/",
     "start": "parcel serve index.html"
   }
 }

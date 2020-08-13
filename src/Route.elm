@@ -10,6 +10,7 @@ import Url.Parser as Parser exposing ((</>), Parser, oneOf, s, string)
 type Route
     = Landing
     | Meeting String
+    | Login
     | Admin
     | Config
 
@@ -21,6 +22,7 @@ parser =
         , Parser.map Meeting (s "meeting" </> string)
         , Parser.map Admin (s "admin")
         , Parser.map Config (s "config")
+        , Parser.map Login (s "login")
         ]
 
 
@@ -58,3 +60,6 @@ routeToPieces route =
 
         Config ->
             [ "config" ]
+
+        Login ->
+            [ "login" ]

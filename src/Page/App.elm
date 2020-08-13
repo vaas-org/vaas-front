@@ -25,7 +25,7 @@ menuitems isAdmin client =
         items =
             [ Link { icon = "🔧", route = Route.Config, show = True }
             , Link { icon = "👨\u{200D}🚒", route = Route.Admin, show = isAdmin }
-            , Button { icon = "🚨", cmd = SendWebsocketConnect, show = client /= Nothing }
+            , Button { icon = "🚨", cmd = SendWebsocketDisconnect, show = client /= Nothing }
             ]
     in
     div [ style "display" "inline-block" ]
@@ -64,13 +64,16 @@ body model =
                 div [] [ text "Not found" ]
 
             Just (Route.Meeting meetingId) ->
-                issueContainer model
+                page model
 
             Just Route.Admin ->
                 Page.Admin.view model
 
             Just Route.Config ->
                 div [] [ text "config" ]
+
+            Just Route.Login ->
+                Page.Portal.view model.client model.username
 
             Just Route.Landing ->
                 div []
@@ -107,49 +110,53 @@ view model =
             , style "grid-template-columns" "1fr min(80%, 1200px) 1fr"
             ]
             [ banner isAdmin model.client
-            , case model.websocketConnection of
-                Connected ->
-                    case model.client of
-                        Just _ ->
-                            body model
-
-                        Nothing ->
-                            Page.Portal.view model.username
-
-                Reconnect _ ->
-                    Page.Loading.view
-
-                Connecting ->
-                    case model.client of
-                        Just _ ->
-                            Page.Loading.view
-
-                        Nothing ->
-                            Page.Portal.view model.username
-
-                NotConnectedYet ->
-                    case model.client of
-                        Just _ ->
-                            Page.Loading.view
-
-                        Nothing ->
-                            Page.Portal.view model.username
-
-                Disconnected ->
-                    Page.Error.view Nothing
-
-                Errored error ->
-                    Page.Error.view (Just error)
-
-                Disconnecting ->
-                    Page.Loading.view
-
-            -- we should technically show an error here
-            -- Page.Loading.view
-            , footer model.websocketConnection model.client
+            , body model
             ]
         ]
     }
+
+
+page : Model -> Html Msg
+page model =
+    case model.websocketConnection of
+        Connected ->
+            case model.client of
+                Just _ ->
+                    issueContainer model
+
+                Nothing ->
+                    -- Page.Portal.view model.username
+                    -- send to login
+                    -- and send back ?
+                    div [] [ a [ Route.href Route.Login ] [ text "Go to login" ] ]
+
+        Reconnect _ ->
+            Page.Loading.view
+
+        Connecting ->
+            case model.client of
+                Just _ ->
+                    Page.Loading.view
+
+                Nothing ->
+                    Page.Portal.view model.client model.username
+
+        NotConnectedYet ->
+            case model.client of
+                Just _ ->
+                    Page.Loading.view
+
+                Nothing ->
+                    Page.Portal.view model.client model.username
+
+        Disconnected ->
+            Page.Error.view Nothing
+
+        Errored error ->
+            Page.Error.view (Just error)
+
+        Disconnecting ->
+            Page.Loading.view
 
 
 banner : Bool -> Maybe Client -> Html Msg

@@ -25,7 +25,7 @@ menuitems isAdmin client =
         items =
             [ Link { icon = "🔧", route = Route.Config, show = True }
             , Link { icon = "👨\u{200D}🚒", route = Route.Admin, show = isAdmin }
-            , Button { icon = "🚨", cmd = SendWebsocketConnect, show = client /= Nothing }
+            , Button { icon = "🚨", cmd = SendWebsocketDisconnect, show = client /= Nothing }
             ]
     in
     div [ style "display" "inline-block" ]

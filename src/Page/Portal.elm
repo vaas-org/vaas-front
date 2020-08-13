@@ -14,15 +14,18 @@ view client username =
             let
                 initialText =
                     "You are already logged in"
+
                 loggedInText =
                     case c.username of
                         Just connectedUser ->
                             initialText ++ " as " ++ connectedUser
+
                         Nothing ->
                             initialText
             in
             div []
                 [ div [] [ text loggedInText ]
+
                 -- go back ? go to stored state ?
                 , div [] [ a [ Route.href Landing ] [ text "Go to landing page" ] ]
                 ]

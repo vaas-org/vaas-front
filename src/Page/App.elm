@@ -127,8 +127,8 @@ page model =
                 Nothing ->
                     -- Page.Portal.view model.username
                     -- send to login
-                    div [] [ a [ Route.href Route.Login ] [ text "Go to login" ]]
                     -- and send back ?
+                    div [] [ a [ Route.href Route.Login ] [ text "Go to login" ] ]
 
         Reconnect _ ->
             Page.Loading.view
@@ -157,7 +157,6 @@ page model =
 
         Disconnecting ->
             Page.Loading.view
-
 
 
 banner : Bool -> Maybe Client -> Html Msg

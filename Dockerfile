@@ -14,8 +14,7 @@ COPY js/ js/
 COPY elm.json .
 COPY index.html .
 
-ARG WEBSOCKET_SERVER
-ENV WEBSOCKET_SERVER=$WEBSOCKET_SERVER
+ENV WEBSOCKET_SERVER=https://vaas-backend.sklirg.io/
 RUN yarn build
 
 FROM iamfreee/docker-nginx-static-spa:latest

@@ -23,3 +23,5 @@ jobs:
         registry: ghcr.io
         repository: vaas-org/vaas-front
         tag_with_sha: true
+        build-args:
+        - "WEBSOCKET_SERVER=https://vaas-backend.sklirg.io/"

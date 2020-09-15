@@ -168,6 +168,9 @@ update msg model =
                     -- Connect first, and then send a new message about the login. I guess?
                     ( model, sendLogin (E.object [ ( "username", E.string username ) ]) )
 
+        SendRegistration username ->
+            ( model, sendEvent (E.object [ ( "type", E.string "registration" ), ( "username", E.string username ) ]) )
+
         CreateIssue issue ->
             ( model
             , sendEvent

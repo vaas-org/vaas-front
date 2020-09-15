@@ -11,6 +11,7 @@ type Route
     = Landing
     | Meeting String
     | Login
+    | Registration
     | Admin
     | Config
 
@@ -23,6 +24,7 @@ parser =
         , Parser.map Admin (s "admin")
         , Parser.map Config (s "config")
         , Parser.map Login (s "login")
+        , Parser.map Registration (s "registration")
         ]
 
 
@@ -63,3 +65,6 @@ routeToPieces route =
 
         Login ->
             [ "login" ]
+
+        Registration ->
+            [ "registration" ]

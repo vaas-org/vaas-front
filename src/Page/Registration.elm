@@ -1,4 +1,4 @@
-module Page.Portal exposing (view)
+module Page.Registration exposing (view)
 
 import Html exposing (Html, a, button, div, h2, input, label, text)
 import Html.Attributes exposing (for, href, style, value)
@@ -10,6 +10,7 @@ import Route exposing (Route(..))
 view : Maybe Client -> String -> Html Msg
 view client username =
     case client of
+        -- copied from login
         Just c ->
             let
                 initialText =
@@ -32,16 +33,10 @@ view client username =
 
         Nothing ->
             div [ style "grid-column" "2" ]
-                [ h2 [] [ text "Portal" ]
-                , div [ style "margin-bottom" "16px" ] [ a [ Route.href Registration ] [ text "Register new user" ] ]
+                [ h2 [] [ text "Registration" ]
                 , div []
                     [ label [ for "username" ] [ text "Username: " ]
                     , input [ style "height" "16px", onInput SetUsername, value username ] []
-                    , button [ onClick (SendLogin username) ] [ text "📞" ]
-                    ]
-                , div []
-                    [ label [ for "sessionid" ] [ text "SessionID: " ]
-                    , input [ style "height" "16px", onInput SetUsername, value username ] []
-                    , button [ onClick (Model.SendWebsocketReconnect username) ] [ text "☎️" ]
+                    , button [ onClick (SendRegistration username) ] [ text "📞" ]
                     ]
                 ]

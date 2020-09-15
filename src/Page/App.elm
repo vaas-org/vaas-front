@@ -11,6 +11,7 @@ import Page.Config
 import Page.Error
 import Page.Loading
 import Page.Portal
+import Page.Registration
 import Page.Vote exposing (issueContainer)
 import Route exposing (Route)
 
@@ -75,6 +76,9 @@ body model =
 
             Just Route.Login ->
                 Page.Portal.view model.client model.username
+
+            Just Route.Registration ->
+                Page.Registration.view model.client model.username
 
             Just Route.Landing ->
                 div []

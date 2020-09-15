@@ -129,6 +129,7 @@ type Msg
     | SetClient Client
     | SetConfig Config
     | SendLogin String
+    | SendRegistration String
     | CreateIssue Issue
     | UpdateIssue Issue
     | UrlChanged Url

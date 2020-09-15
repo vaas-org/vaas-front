@@ -17,6 +17,7 @@ COPY index.html .
 ENV WEBSOCKET_SERVER=https://vaas-backend.sklirg.io
 RUN yarn build
 
-FROM iamfreee/docker-nginx-static-spa:latest
+FROM nginx:mainline-alpine
 
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=0 /app/dist/ /var/www/html

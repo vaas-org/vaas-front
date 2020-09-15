@@ -10,6 +10,7 @@ view : Model -> Html Msg
 view model =
     div []
         [ h2 [] [ text "Admin page" ]
+        , button [ onClick Model.ListAllIssues ] [ text "List all issues" ]
         , case model.newIssue of
             Just issue ->
                 Page.CreateIssue.view issue

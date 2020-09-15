@@ -210,6 +210,9 @@ update msg model =
         SetConfig config ->
             ( { model | config = config }, Cmd.none )
 
+        ListAllIssues ->
+            ( model, sendEvent (E.object [ ( "type", E.string "list_all_issues" ) ]) )
+
 
 
 -- util function which accepts a Msg as argument and converts it to a Cmd Msg.

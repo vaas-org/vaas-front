@@ -133,6 +133,7 @@ type Msg
     | UpdateIssue Issue
     | UrlChanged Url
     | LinkClicked Browser.UrlRequest
+    | ListAllIssues
 
 
 type Theme

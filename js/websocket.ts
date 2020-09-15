@@ -1,4 +1,4 @@
-const websocketServer = "http://localhost:8080";
+const websocketServer = process.env.WEBSOCKET_SERVER ?? "http://localhost:8080";
 
 function log(msg: string) {
   console.info("WS: " + msg);

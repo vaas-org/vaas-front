@@ -1,5 +1,6 @@
 {
   "devDependencies": {
+    "@types/node": "^14.6.4",
     "elm-format": "^0.8.3",
     "elm-hot": "^1.1.4",
     "node-elm-compiler": "^5.0.4",
@@ -11,6 +12,7 @@
   "scripts": {
     "elm-format": "elm-format --validate src/",
     "elm-format:fix": "elm-format --yes src/",
-    "start": "parcel serve index.html"
+    "start": "parcel serve index.html",
+    "build": "parcel build index.html"
   }
 }

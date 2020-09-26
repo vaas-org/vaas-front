@@ -126,6 +126,9 @@ issueProgress voters issue =
                 InProgress ->
                     "In Progress"
 
+                VotingFinished ->
+                    "Voting Finished"
+
                 Finished ->
                     "Finished"
 

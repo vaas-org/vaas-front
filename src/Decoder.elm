@@ -65,6 +65,11 @@ decodeReceivedIssue =
         (D.field "show_distribution" D.bool)
 
 
+decodeReceivedIssues : D.Decoder (List Issue)
+decodeReceivedIssues =
+    D.field "issues" (D.list decodeReceivedIssue)
+
+
 decodeWebSocketMessage : D.Decoder WebSocketMessage
 decodeWebSocketMessage =
     D.field "type" D.string
@@ -74,6 +79,9 @@ decodeWebSocketMessage =
 decodeMessageType : String -> D.Decoder WebSocketMessage
 decodeMessageType messageType =
     case messageType of
+        "all_issues" ->
+            decodeReceivedIssues |> D.map IssuesMessage
+
         "issue" ->
             decodeReceivedIssue |> D.map IssueMessage
 

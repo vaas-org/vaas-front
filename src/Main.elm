@@ -42,6 +42,7 @@ init flags url key =
       , route = Route.fromUrl url
       , key = key
       , config = Light
+      , issues = []
       }
     , send SendWebsocketConnect
     )
@@ -107,6 +108,9 @@ update msg model =
 
         ReceiveIssue issue ->
             ( { model | activeIssue = issue }, Cmd.none )
+
+        ReceiveIssues issues ->
+            ( { model | issues = issues }, Cmd.none )
 
         SelectAlternative clickedAlternative ->
             let
@@ -249,6 +253,9 @@ webSocketMessageToMsg value =
 
                 ClientMessage client ->
                     SetClient client
+
+                IssuesMessage issues ->
+                    ReceiveIssues issues
 
         Err _ ->
             -- TODO Handle error somehow

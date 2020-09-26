@@ -1,0 +1,46 @@
+.issue-list {
+    margin: 1rem 0;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+
+    &--item {
+        margin: 0.5rem 0;
+
+        &--header {
+            display: flex;
+            justify-content: space-between;
+            
+            > h4 {
+                margin: 0;
+            }
+        }
+
+        p {
+            margin: 0.5rem;
+        }
+    }
+
+    h4 {
+        margin-top: 0;
+    }
+
+    &--actions {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    &--active {
+        background-color: #1abc9c;
+        border-color: #1abc9c;
+    }
+
+    &--available {
+        background-color: #2980b9;
+        border-color: #2980b9;
+    }
+
+    &--completed {
+        background-color: #8e44ad;
+        border-color: #8e44ad;
+    }
+}

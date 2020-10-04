@@ -40,7 +40,8 @@ type alias Alternative =
 type IssueState
     = NotStarted
     | InProgress
-    | Finished
+    | VotingFinished -- Voting finished, but result not published
+    | Finished -- Issue completely finished, case closed style
 
 
 type alias Issue =
@@ -73,6 +74,7 @@ type WebSocketMessage
     = IssueMessage Issue
     | VoteMessage Vote
     | ClientMessage Client
+    | IssuesMessage (List Issue)
 
 
 type EventStatus
@@ -103,6 +105,7 @@ type alias Model =
     , route : Maybe Route
     , key : Nav.Key
     , config : Config
+    , issues : List Issue
     }
 
 
@@ -117,6 +120,7 @@ type IssueField
 type Msg
     = NoOp
     | ReceiveIssue Issue
+    | ReceiveIssues (List Issue)
     | SelectAlternative Alternative
     | SendVote Alternative
     | SetVoteStatus EventStatus
@@ -134,6 +138,8 @@ type Msg
     | UpdateIssue Issue
     | UrlChanged Url
     | LinkClicked Browser.UrlRequest
+    | ListAllIssues
+    | SetIssueState Issue IssueState
 
 
 type Theme

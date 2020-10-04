@@ -2,7 +2,7 @@ port module Main exposing (main)
 
 import Browser
 import Browser.Navigation as Nav
-import Decoder exposing (decodeWebSocketMessage)
+import Decoder exposing (decodeWebSocketMessage, encodeIssueState)
 import Json.Decode as D
 import Json.Encode as E
 import Model exposing (ConnectionStatus(..), EventStatus(..), Flags, IssueState(..), Model, Msg(..), Theme(..), WebSocketMessage(..), dummyIssue)
@@ -42,6 +42,7 @@ init flags url key =
       , route = Route.fromUrl url
       , key = key
       , config = Light
+      , issues = []
       }
     , send SendWebsocketConnect
     )
@@ -106,7 +107,14 @@ update msg model =
             )
 
         ReceiveIssue issue ->
-            ( { model | activeIssue = issue }, Cmd.none )
+            let
+                issues =
+                    List.filter (\i -> i.id /= issue.id) model.issues ++ [ issue ]
+            in
+            ( { model | activeIssue = issue, issues = issues }, Cmd.none )
+
+        ReceiveIssues issues ->
+            ( { model | issues = issues }, Cmd.none )
 
         SelectAlternative clickedAlternative ->
             let
@@ -213,6 +221,20 @@ update msg model =
         SetConfig config ->
             ( { model | config = config }, Cmd.none )
 
+        ListAllIssues ->
+            ( model, sendEvent (E.object [ ( "type", E.string "list_all_issues" ) ]) )
+
+        SetIssueState issue state ->
+            ( model
+            , sendEvent
+                (E.object
+                    [ ( "type", E.string "set_issue_state" )
+                    , ( "issue_id", E.string issue.id )
+                    , ( "state", E.string (encodeIssueState state) )
+                    ]
+                )
+            )
+
 
 
 -- util function which accepts a Msg as argument and converts it to a Cmd Msg.
@@ -249,6 +271,9 @@ webSocketMessageToMsg value =
 
                 ClientMessage client ->
                     SetClient client
+
+                IssuesMessage issues ->
+                    ReceiveIssues issues
 
         Err _ ->
             -- TODO Handle error somehow

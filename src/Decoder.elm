@@ -1,4 +1,4 @@
-module Decoder exposing (decodeAlternative, decodeReceivedIssue, decodeVote, decodeWebSocketMessage)
+module Decoder exposing (decodeAlternative, decodeReceivedIssue, decodeVote, decodeWebSocketMessage, encodeIssueState)
 
 import Json.Decode as D
 import Model exposing (Alternative, Client, Issue, IssueState(..), Vote(..), WebSocketMessage(..))
@@ -45,11 +45,30 @@ decodeIssueState s =
         "inprogress" ->
             D.succeed InProgress
 
+        "votingfinished" ->
+            D.succeed VotingFinished
+
         "finished" ->
             D.succeed Finished
 
         _ ->
             D.fail ("error decoding '" ++ s ++ "' as IssueState")
+
+
+encodeIssueState : IssueState -> String
+encodeIssueState state =
+    case state of
+        NotStarted ->
+            "notstarted"
+
+        InProgress ->
+            "inprogress"
+
+        VotingFinished ->
+            "votingfinished"
+
+        Finished ->
+            "finished"
 
 
 decodeReceivedIssue : D.Decoder Issue
@@ -65,6 +84,11 @@ decodeReceivedIssue =
         (D.field "show_distribution" D.bool)
 
 
+decodeReceivedIssues : D.Decoder (List Issue)
+decodeReceivedIssues =
+    D.field "issues" (D.list decodeReceivedIssue)
+
+
 decodeWebSocketMessage : D.Decoder WebSocketMessage
 decodeWebSocketMessage =
     D.field "type" D.string
@@ -74,6 +98,9 @@ decodeWebSocketMessage =
 decodeMessageType : String -> D.Decoder WebSocketMessage
 decodeMessageType messageType =
     case messageType of
+        "all_issues" ->
+            decodeReceivedIssues |> D.map IssuesMessage
+
         "issue" ->
             decodeReceivedIssue |> D.map IssueMessage
 

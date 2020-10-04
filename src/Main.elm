@@ -2,7 +2,7 @@ port module Main exposing (main)
 
 import Browser
 import Browser.Navigation as Nav
-import Decoder exposing (decodeWebSocketMessage)
+import Decoder exposing (decodeWebSocketMessage, encodeIssueState)
 import Json.Decode as D
 import Json.Encode as E
 import Model exposing (ConnectionStatus(..), EventStatus(..), Flags, IssueState(..), Model, Msg(..), Theme(..), WebSocketMessage(..), dummyIssue)
@@ -107,7 +107,11 @@ update msg model =
             )
 
         ReceiveIssue issue ->
-            ( { model | activeIssue = issue }, Cmd.none )
+            let
+                issues =
+                    List.filter (\i -> i.id /= issue.id) model.issues ++ [ issue ]
+            in
+            ( { model | activeIssue = issue, issues = issues }, Cmd.none )
 
         ReceiveIssues issues ->
             ( { model | issues = issues }, Cmd.none )
@@ -216,6 +220,17 @@ update msg model =
 
         ListAllIssues ->
             ( model, sendEvent (E.object [ ( "type", E.string "list_all_issues" ) ]) )
+
+        SetIssueState issue state ->
+            ( model
+            , sendEvent
+                (E.object
+                    [ ( "type", E.string "set_issue_state" )
+                    , ( "issue_id", E.string issue.id )
+                    , ( "state", E.string (encodeIssueState state) )
+                    ]
+                )
+            )
 
 
 

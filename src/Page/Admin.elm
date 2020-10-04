@@ -53,19 +53,31 @@ issueList title issues =
         ]
 
 
+type alias IssueStateTransition =
+    { toState : IssueState
+    , text : String
+    }
+
+
 issueListItem : Issue -> Html Msg
 issueListItem issue =
     let
         availableActions =
             case issue.state of
                 NotStarted ->
-                    [ "set active", "delete" ]
+                    [ { toState = InProgress, text = "set active" }
+                    , { toState = NotStarted, text = "delete" }
+                    ]
 
                 InProgress ->
-                    [ "reset voting", "close voting" ]
+                    [ { toState = InProgress, text = "reset voting" }
+                    , { toState = VotingFinished, text = "close voting" }
+                    ]
 
                 VotingFinished ->
-                    [ "reset voting", "publish results" ]
+                    [ { toState = InProgress, text = "reset voting" }
+                    , { toState = Finished, text = "publish results" }
+                    ]
 
                 Finished ->
                     []
@@ -73,12 +85,12 @@ issueListItem issue =
     div [ class "issue-list--item" ]
         [ div [ class "issue-list--item--header" ]
             [ h4 [] [ text issue.title ]
-            , div [ class "issue-list--actions" ] (List.map actionButton availableActions)
+            , div [ class "issue-list--actions" ] (List.map (actionButton issue) availableActions)
             ]
         , div [] [ p [] [ text issue.description ] ]
         ]
 
 
-actionButton : String -> Html Msg
-actionButton action =
-    div [] [ text ("[" ++ action ++ "]") ]
+actionButton : Issue -> IssueStateTransition -> Html Msg
+actionButton issue transition =
+    div [ onClick (Model.SetIssueState issue transition.toState) ] [ text ("[" ++ transition.text ++ "]") ]

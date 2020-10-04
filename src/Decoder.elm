@@ -1,4 +1,4 @@
-module Decoder exposing (decodeAlternative, decodeReceivedIssue, decodeVote, decodeWebSocketMessage)
+module Decoder exposing (decodeAlternative, decodeReceivedIssue, decodeVote, decodeWebSocketMessage, encodeIssueState)
 
 import Json.Decode as D
 import Model exposing (Alternative, Client, Issue, IssueState(..), Vote(..), WebSocketMessage(..))
@@ -45,11 +45,30 @@ decodeIssueState s =
         "inprogress" ->
             D.succeed InProgress
 
+        "votingfinished" ->
+            D.succeed VotingFinished
+
         "finished" ->
             D.succeed Finished
 
         _ ->
             D.fail ("error decoding '" ++ s ++ "' as IssueState")
+
+
+encodeIssueState : IssueState -> String
+encodeIssueState state =
+    case state of
+        NotStarted ->
+            "notstarted"
+
+        InProgress ->
+            "inprogress"
+
+        VotingFinished ->
+            "votingfinished"
+
+        Finished ->
+            "finished"
 
 
 decodeReceivedIssue : D.Decoder Issue

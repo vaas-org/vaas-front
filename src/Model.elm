@@ -138,6 +138,7 @@ type Msg
     | UrlChanged Url
     | LinkClicked Browser.UrlRequest
     | ListAllIssues
+    | SetIssueState Issue IssueState
 
 
 type Theme
